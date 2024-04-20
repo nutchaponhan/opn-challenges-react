@@ -71,7 +71,7 @@ Let's rock! :metal:
 
 ## Applicant Extra Document
 
-project refresh
+project setup change log to complete running application
 
 - [x] update webpack proxy config
 - [x] update webpack version to `5.91.0` to fix .mjs file type

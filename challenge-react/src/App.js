@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import fetch from 'isomorphic-fetch';
 import { useSelector, useDispatch } from 'react-redux';
+import styled from 'styled-components';
+import { toast } from 'react-toastify';
 
 import { TamboonCard } from './components';
 
@@ -11,7 +13,6 @@ import {
   setSelectAmount,
 } from './store/appSlicer';
 import { DONATE_AMOUNT } from './enum';
-import styled from 'styled-components';
 
 const App = () => {
   const appState = useSelector((state) => state.app);
@@ -79,14 +80,12 @@ const App = () => {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
+        toast.success('donate success');
       });
   }
 
   const donate = getDotation(appState?.payments);
   const message = 'nice message coming soon';
-
-  console.log({ appState });
 
   return (
     <div>
