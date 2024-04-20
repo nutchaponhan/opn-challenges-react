@@ -16,7 +16,15 @@ const config = {
     port: 3000,
     historyApiFallback: true,
     disableHostCheck: true,
-    contentBase: 'public',
+    contentBase: 'public', // content base path
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        pathRewrite: {
+          '^/api': '',
+        },
+      },
+    },
   },
 
   module: {

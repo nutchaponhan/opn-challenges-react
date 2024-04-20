@@ -68,3 +68,11 @@ You can push the project to your Github then share the link with us, or you can 
 If you notice more bugs in the original implementation you can add fixes for those as well. You won't be penalized if you don't. However we ask you not to add more features than the one given in the mission list.
 
 Let's rock! :metal:
+
+
+## Applicant Extra Document
+
+project refresh
+
+- [x] adding `--no-cors` mode into API-SERVER (optional)
+- [x] update webpack proxy config 

@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
 import fetch from 'isomorphic-fetch';
-import styled from 'styled-components';
 import { connect } from 'react-redux';
-import { summaryDonations } from './helpers';
 
-const Card = styled.div`
-  margin: 10px;
-  border: 1px solid #ccc;
-`;
+import { TamboonCard } from './components';
+
+import { summaryDonations } from './helpers';
 
 export default connect((state) => state)(
   class App extends Component {
@@ -16,59 +13,43 @@ export default connect((state) => state)(
       selectedAmount: 10,
     };
 
-    componentDidMount() {
-      const self = this;
-      fetch('http://localhost:3001/charities')
-        .then(function (resp) {
+    fetchCharities() {
+      fetch('api/charities')
+        .then((resp) => {
           return resp.json();
         })
-        .then(function (data) {
-          self.setState({ charities: data });
+        .then((data) => {
+          this.setState({ charities: data });
         });
+    }
 
-      fetch('http://localhost:3001/payments')
-        .then(function (resp) {
+    fetchPayments() {
+      fetch('api/payments')
+        .then((resp) => {
           return resp.json();
         })
-        .then(function (data) {
-          self.props.dispatch({
+        .then((data) => {
+          this.props.dispatch({
             type: 'UPDATE_TOTAL_DONATE',
             amount: summaryDonations(data.map((item) => item.amount)),
           });
         });
     }
 
-    render() {
-      const self = this;
-      const cards = this.state.charities.map(function (item, i) {
-        const payments = [10, 20, 50, 100, 500].map((amount, j) => (
-          <label key={j}>
-            <input
-              type="radio"
-              name="payment"
-              onClick={function () {
-                self.setState({ selectedAmount: amount });
-              }}
-            />
-            {amount}
-          </label>
-        ));
+    componentDidMount() {
+      this.fetchCharities();
+      this.fetchPayments();
+    }
 
+    render() {
+      const cards = this.state.charities.map((item, i) => {
         return (
-          <Card key={i}>
-            <p>{item.name}</p>
-            {payments}
-            <button
-              onClick={handlePay.call(
-                self,
-                item.id,
-                self.state.selectedAmount,
-                item.currency
-              )}
-            >
-              Pay
-            </button>
-          </Card>
+          <TamboonCard
+            key={item.id}
+            payments={[10, 20, 50, 100, 500]}
+            item={item}
+            handlePay={handlePay}
+          />
         );
       });
 
@@ -103,7 +84,7 @@ export default connect((state) => state)(
  * @param {*} currency The currency
  * 
  * @example
- * fetch('http://localhost:3001/payments', {
+ * fetch('api/payments', {
       method: 'POST',
       body: `{ "charitiesId": ${id}, "amount": ${amount}, "currency": "${currency}" }`,
     })
