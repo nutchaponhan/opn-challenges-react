@@ -69,10 +69,11 @@ If you notice more bugs in the original implementation you can add fixes for tho
 
 Let's rock! :metal:
 
-
 ## Applicant Extra Document
 
 project refresh
 
-- [x] adding `--no-cors` mode into API-SERVER (optional)
-- [x] update webpack proxy config 
+- [x] update webpack proxy config
+- [x] update webpack version to `5.91.0` to fix .mjs file type
+- [x] change app state redux store pattern to use reduxToolkit
+- [x] update babel config to transform runtime to support `async await` syntax

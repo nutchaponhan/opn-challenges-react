@@ -1,48 +1,67 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import fetch from 'isomorphic-fetch';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { TamboonCard } from './components';
 
 import { summaryDonations } from './helpers';
+import { setCharities, setPaymentTransactions } from './store/appSlicer';
 
-export default connect((state) => state)(
-  class App extends Component {
-    state = {
-      charities: [],
-      selectedAmount: 10,
-    };
+const App = () => {
+  const appState = useSelector((state) => state.app);
+  const dispatch = useDispatch();
 
-    fetchCharities() {
-      fetch('api/charities')
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((data) => {
-          this.setState({ charities: data });
-        });
-    }
+  const setCharitiesDispatch = (charities = []) => {
+    dispatch(setCharities(charities));
+  };
 
-    fetchPayments() {
-      fetch('api/payments')
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((data) => {
-          this.props.dispatch({
-            type: 'UPDATE_TOTAL_DONATE',
-            amount: summaryDonations(data.map((item) => item.amount)),
-          });
-        });
-    }
+  const setPaymentTransactionsDispatch = (paymentTransactions = []) => {
+    dispatch(setPaymentTransactions(paymentTransactions));
+  };
 
-    componentDidMount() {
-      this.fetchCharities();
-      this.fetchPayments();
-    }
+  const getDotation = (paymentTransactions = []) => {
+    return summaryDonations(paymentTransactions.map((item) => item.amount));
+  };
 
-    render() {
-      const cards = this.state.charities.map((item, i) => {
+  const fetchAppData = async () => {
+    const fetchCharities = fetch('api/charities').then((resp) => {
+      return resp.json();
+    });
+
+    const fetchPayments = fetch('api/payments').then((resp) => {
+      return resp.json();
+    });
+
+    const [charities, payments] = await Promise.all([
+      fetchCharities,
+      fetchPayments,
+    ]);
+
+    setCharitiesDispatch(charities);
+    setPaymentTransactionsDispatch(payments);
+  };
+
+  useEffect(() => {
+    fetchAppData();
+  }, []);
+
+  const style = {
+    color: 'red',
+    margin: '1em 0',
+    fontWeight: 'bold',
+    fontSize: '16px',
+    textAlign: 'center',
+  };
+
+  const donate = getDotation(appState?.payments);
+  const message = 'nice message coming soon';
+
+  return (
+    <div>
+      <h1>Tamboon React</h1>
+      <p>All donations: {donate}</p>
+      <p style={style}>{message}</p>
+      {appState?.charities?.map((item, i) => {
         return (
           <TamboonCard
             key={item.id}
@@ -51,30 +70,12 @@ export default connect((state) => state)(
             handlePay={handlePay}
           />
         );
-      });
+      })}
+    </div>
+  );
+};
 
-      const style = {
-        color: 'red',
-        margin: '1em 0',
-        fontWeight: 'bold',
-        fontSize: '16px',
-        textAlign: 'center',
-      };
-
-      const donate = this.props.donate;
-      const message = this.props.message;
-
-      return (
-        <div>
-          <h1>Tamboon React</h1>
-          <p>All donations: {donate}</p>
-          <p style={style}>{message}</p>
-          {cards}
-        </div>
-      );
-    }
-  }
-);
+export default App;
 
 /**
  * Handle pay button
