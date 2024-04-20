@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import fetch from 'isomorphic-fetch';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
@@ -7,11 +6,7 @@ import { toast } from 'react-toastify';
 import { TamboonCard } from './components';
 
 import { summaryDonations } from './helpers';
-import {
-  setCharities,
-  setPaymentTransactions,
-  setSelectAmount,
-} from './store/appSlicer';
+import { fetchCharities, fetchPayments, postPayment } from './store/appSlicer';
 import { DONATE_AMOUNT } from './enum';
 
 const App = () => {
@@ -22,66 +17,36 @@ const App = () => {
     fetchAppData();
   }, []);
 
-  const setCharitiesDispatch = (charities = []) => {
-    dispatch(setCharities(charities));
-  };
-
-  const setPaymentTransactionsDispatch = (paymentTransactions = []) => {
-    dispatch(setPaymentTransactions(paymentTransactions));
-  };
-
-  const setSelectAmountDispatch = (selectedAmount = 0) => {
-    dispatch(setSelectAmount(selectedAmount));
-  };
-
   const getDotation = (paymentTransactions = []) => {
     return summaryDonations(paymentTransactions.map((item) => item.amount));
   };
 
   const fetchAppData = async () => {
-    const fetchCharities = fetch('api/charities').then((resp) => {
-      return resp.json();
-    });
-
-    const fetchPayments = fetch('api/payments').then((resp) => {
-      return resp.json();
-    });
-
-    const [charities, payments] = await Promise.all([
-      fetchCharities,
-      fetchPayments,
-    ]);
-
-    setCharitiesDispatch(charities);
-    setPaymentTransactionsDispatch(payments);
+    dispatch(fetchCharities());
+    dispatch(fetchPayments());
   };
 
-  const handleSelect = (selectedAmount) => {
-    setSelectAmountDispatch(selectedAmount);
-  };
-
-  function handlePay(selectCharity = {}) {
-    const selectAmount = appState.selectAmount;
-
+  function handlePay(selectCharity = {}, selectAmount) {
     const { id, currency } = selectCharity;
 
-    fetch('api/payments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const data = {
+      charitiesId: id,
+      amount: selectAmount,
+      currency,
+    };
+
+    const onSuccess = () => {
+      toast('Donate success');
+    };
+
+    const param = {
+      data,
+      cb: {
+        onSuccess,
       },
-      body: JSON.stringify({
-        charitiesId: id,
-        amount: selectAmount,
-        currency,
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        toast.success('donate success');
-      });
+    };
+
+    dispatch(postPayment(param));
   }
 
   const donate = getDotation(appState?.payments);
@@ -100,7 +65,6 @@ const App = () => {
               payments={DONATE_AMOUNT}
               item={charity}
               handlePay={handlePay}
-              handleSelect={handleSelect}
             />
           );
         })}

@@ -3,14 +3,9 @@ import styled from 'styled-components';
 
 import Card from './Card';
 
-const TamboonCard = ({
-  payments,
-  item,
-  selectedAmount,
-  handlePay,
-  handleSelect,
-}) => {
+const TamboonCard = ({ payments, item, handlePay }) => {
   const [onDonate, setOnDonate] = useState(false);
+  const [selectAmount, setSelectAmount] = useState(null);
   const imgPath = `/images/${item.image}`;
 
   const toggle = () => {
@@ -19,11 +14,12 @@ const TamboonCard = ({
 
   const onDonateSubmit = () => {
     toggle();
-    handlePay(item);
+    handlePay(item, selectAmount);
+    setSelectAmount(null);
   };
 
   const onDonateChoiceSelect = (amount) => {
-    handleSelect(amount);
+    setSelectAmount(amount);
   };
 
   return (
@@ -33,6 +29,7 @@ const TamboonCard = ({
         <TamboonActionBar name={item.name} onClick={toggle} />
       </TamboonContent>
       <TamboonDonate
+        selected={selectAmount}
         choice={payments}
         onDonate={onDonate}
         onSubmit={onDonateSubmit}
@@ -71,10 +68,21 @@ const DonateChoiceSection = styled.div`
   gap: 12px;
 `;
 
-const TamboonDonate = ({ onDonate, choice = [], onSubmit, onSelect }) => {
+const TamboonDonate = ({
+  selected,
+  choice = [],
+  onDonate,
+  onSubmit,
+  onSelect,
+}) => {
   const paymentChoice = choice.map((amount, j) => (
     <label key={j}>
-      <input type="radio" name="payment" onClick={() => onSelect(amount)} />
+      <input
+        type="radio"
+        name="payment"
+        checked={amount === selected}
+        onChange={() => onSelect(amount)}
+      />
       {amount}
     </label>
   ));
