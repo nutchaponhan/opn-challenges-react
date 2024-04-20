@@ -6,6 +6,7 @@ import Card from './Card';
 const TamboonCard = ({ payments, item, handlePay }) => {
   const [onDonate, setOnDonate] = useState(false);
   const [selectAmount, setSelectAmount] = useState(null);
+
   const imgPath = `/images/${item.image}`;
 
   const toggle = () => {
@@ -22,18 +23,24 @@ const TamboonCard = ({ payments, item, handlePay }) => {
     setSelectAmount(amount);
   };
 
+  const onDonateClose = () => {
+    setSelectAmount(null);
+    toggle();
+  };
+
   return (
     <Card>
-      <TamboonContent isDonate={onDonate}>
+      <TamboonContentSide isDonate={onDonate}>
         <TamboonCharityImage src={imgPath} alt={item.name} />
         <TamboonActionBar name={item.name} onClick={toggle} />
-      </TamboonContent>
-      <TamboonDonate
+      </TamboonContentSide>
+      <TamboonDonateSide
         selected={selectAmount}
         choice={payments}
         onDonate={onDonate}
         onSubmit={onDonateSubmit}
         onSelect={onDonateChoiceSelect}
+        onClose={onDonateClose}
       />
     </Card>
   );
@@ -41,7 +48,7 @@ const TamboonCard = ({ payments, item, handlePay }) => {
 
 export default TamboonCard;
 
-const TamboonContent = styled.div`
+const TamboonContentSide = styled.div`
   opacity: ${(props) => (props.isDonate ? 0.1 : 1)};
 `;
 
@@ -53,12 +60,18 @@ const DonateLayout = styled.div`
   width: 100%;
   height: 100%;
 
-  letter-spacing: 0.5px;
+  display: ${(props) => !props.isDonate && 'none'};
+`;
 
-  display: ${(props) => (props.isDonate ? 'flex' : 'none')};
+const DonateSide = styled.div`
+  position: relative;
+
+  display: flex;
+
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: inherit;
   gap: 12px;
 `;
 
@@ -68,12 +81,23 @@ const DonateChoiceSection = styled.div`
   gap: 12px;
 `;
 
-const TamboonDonate = ({
+const XIcon = styled.span`
+  position: absolute;
+  top: 24px;
+  right: 24px;
+
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const TamboonDonateSide = ({
   selected,
   choice = [],
   onDonate,
   onSubmit,
   onSelect,
+  onClose,
 }) => {
   const paymentChoice = choice.map((amount, j) => (
     <label key={j}>
@@ -89,9 +113,12 @@ const TamboonDonate = ({
 
   return (
     <DonateLayout isDonate={onDonate}>
-      <span>Select the amount to donate (USD)</span>
-      <DonateChoiceSection>{paymentChoice}</DonateChoiceSection>
-      <button onClick={onSubmit}>Pay</button>
+      <DonateSide>
+        <span>Select the amount to donate (USD)</span>
+        <DonateChoiceSection>{paymentChoice}</DonateChoiceSection>
+        <button onClick={onSubmit}>Pay</button>
+        <XIcon onClick={onClose}>X</XIcon>
+      </DonateSide>
     </DonateLayout>
   );
 };

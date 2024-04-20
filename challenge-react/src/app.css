@@ -13,6 +13,8 @@
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  color: #525252;
+  letter-spacing: 0.5px;
 }
 img,
 picture,

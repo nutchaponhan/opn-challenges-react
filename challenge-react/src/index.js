@@ -13,7 +13,7 @@ import { store } from './store/appStore';
 render(
   <Provider store={store}>
     <App />
-    <ToastContainer newestOnTop={true} />
+    <ToastContainer autoClose={2500} newestOnTop={true} />
   </Provider>,
   document.getElementById('root')
 );
