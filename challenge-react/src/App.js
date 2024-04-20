@@ -1,52 +1,40 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
 
 import { TamboonCard } from './components';
 
+import { useAppHook } from './hooks/appHook';
 import { summaryDonations } from './helpers';
-import { fetchCharities, fetchPayments, postPayment } from './store/appSlicer';
 import { DONATE_AMOUNT } from './enum';
 
+const getDotation = (paymentTransactions = []) => {
+  return summaryDonations(paymentTransactions.map((item) => item.amount));
+};
+
 const App = () => {
-  const appState = useSelector((state) => state.app);
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    fetchAppData();
-  }, []);
-
-  const getDotation = (paymentTransactions = []) => {
-    return summaryDonations(paymentTransactions.map((item) => item.amount));
-  };
-
-  const fetchAppData = async () => {
-    dispatch(fetchCharities());
-    dispatch(fetchPayments());
-  };
+  const { state: appState, action } = useAppHook();
 
   function handlePay(selectCharity = {}, selectAmount) {
     const { id, currency } = selectCharity;
 
-    const data = {
-      charitiesId: id,
-      amount: selectAmount,
-      currency,
-    };
-
-    const onSuccess = () => {
-      toast('Donate success');
-    };
-
     const param = {
-      data,
+      data: {
+        charitiesId: id,
+        amount: selectAmount,
+        currency,
+      },
       cb: {
-        onSuccess,
+        onSuccess: () => {
+          toast.success('Donate Successful ❤️');
+        },
+        onPending: () => {
+          toast.info('Processing . . .');
+        },
       },
     };
 
-    dispatch(postPayment(param));
+    action.donate(param);
   }
 
   const donate = getDotation(appState?.payments);

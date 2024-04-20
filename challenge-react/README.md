@@ -78,3 +78,4 @@ project setup change log to complete running application
 - [x] change app state redux store pattern to use reduxToolkit
 - [x] update babel config to transform runtime to support `async await` syntax
 - [x] update babel config support `css`
+- [x] adding toast and custom hooks

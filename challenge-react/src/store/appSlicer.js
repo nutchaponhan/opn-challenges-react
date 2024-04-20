@@ -12,15 +12,25 @@ export const fetchPayments = createAsyncThunk('payments/getAll', async () => {
   return response.data;
 });
 
-export const postPayment = createAsyncThunk('payments/post', async (params) => {
-  const { data, cb } = params;
+export const postPayment = createAsyncThunk(
+  'payments/post',
+  async (params, { rejectWithValue }) => {
+    const { data, cb } = params;
 
-  const response = await API.POST('/payments', data);
+    cb?.onPending();
 
-  cb?.onSuccess();
+    try {
+      const response = await API.POST('/payments', data);
+      const responseData = response.data;
 
-  return response.data;
-});
+      cb?.onSuccess();
+
+      return responseData;
+    } catch (err) {
+      return rejectWithValue(null);
+    }
+  }
+);
 
 const appSlice = createSlice({
   name: 'app',
