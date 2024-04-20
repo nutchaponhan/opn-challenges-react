@@ -8,7 +8,7 @@ const appSlice = createSlice({
     selectAmount: 0,
   },
   reducers: {
-    select: (state, action) => {
+    setSelectAmount: (state, action) => {
       state.selectAmount = action.payload;
     },
     setCharities: (state, action) => {
@@ -20,6 +20,6 @@ const appSlice = createSlice({
   },
 });
 
-export const { select, setCharities, setPaymentTransactions } =
+export const { setSelectAmount, setCharities, setPaymentTransactions } =
   appSlice.actions;
 export default appSlice.reducer;

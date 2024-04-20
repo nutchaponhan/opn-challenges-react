@@ -5,11 +5,21 @@ import { useSelector, useDispatch } from 'react-redux';
 import { TamboonCard } from './components';
 
 import { summaryDonations } from './helpers';
-import { setCharities, setPaymentTransactions } from './store/appSlicer';
+import {
+  setCharities,
+  setPaymentTransactions,
+  setSelectAmount,
+} from './store/appSlicer';
+import { DONATE_AMOUNT } from './enum';
+import styled from 'styled-components';
 
 const App = () => {
   const appState = useSelector((state) => state.app);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    fetchAppData();
+  }, []);
 
   const setCharitiesDispatch = (charities = []) => {
     dispatch(setCharities(charities));
@@ -17,6 +27,10 @@ const App = () => {
 
   const setPaymentTransactionsDispatch = (paymentTransactions = []) => {
     dispatch(setPaymentTransactions(paymentTransactions));
+  };
+
+  const setSelectAmountDispatch = (selectedAmount = 0) => {
+    dispatch(setSelectAmount(selectedAmount));
   };
 
   const getDotation = (paymentTransactions = []) => {
@@ -41,53 +55,75 @@ const App = () => {
     setPaymentTransactionsDispatch(payments);
   };
 
-  useEffect(() => {
-    fetchAppData();
-  }, []);
-
-  const style = {
-    color: 'red',
-    margin: '1em 0',
-    fontWeight: 'bold',
-    fontSize: '16px',
-    textAlign: 'center',
+  const handleSelect = (selectedAmount) => {
+    setSelectAmountDispatch(selectedAmount);
   };
+
+  function handlePay(selectCharity = {}) {
+    const selectAmount = appState.selectAmount;
+
+    const { id, currency } = selectCharity;
+
+    fetch('api/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        charitiesId: id,
+        amount: selectAmount,
+        currency,
+      }),
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+      });
+  }
 
   const donate = getDotation(appState?.payments);
   const message = 'nice message coming soon';
+
+  console.log({ appState });
 
   return (
     <div>
       <h1>Tamboon React</h1>
       <p>All donations: {donate}</p>
-      <p style={style}>{message}</p>
-      {appState?.charities?.map((item, i) => {
-        return (
-          <TamboonCard
-            key={item.id}
-            payments={[10, 20, 50, 100, 500]}
-            item={item}
-            handlePay={handlePay}
-          />
-        );
-      })}
+      <p>{message}</p>
+      <Layout>
+        {appState?.charities?.map((charity, i) => {
+          return (
+            <TamboonCard
+              key={charity.id}
+              payments={DONATE_AMOUNT}
+              item={charity}
+              handlePay={handlePay}
+              handleSelect={handleSelect}
+            />
+          );
+        })}
+      </Layout>
     </div>
   );
 };
 
 export default App;
 
-/**
- * Handle pay button
- * 
- * @param {*} The charities Id
- * @param {*} amount The amount was selected
- * @param {*} currency The currency
- * 
- * @example
- * fetch('api/payments', {
-      method: 'POST',
-      body: `{ "charitiesId": ${id}, "amount": ${amount}, "currency": "${currency}" }`,
-    })
- */
-function handlePay(id, amount, currency) {}
+const Layout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  /* Styles for tablets */
+  @media only screen and (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Styles for desktops */
+  @media only screen and (min-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;

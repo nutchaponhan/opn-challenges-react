@@ -19,7 +19,7 @@ const TamboonCard = ({
 
   const onDonateSubmit = () => {
     toggle();
-    handlePay();
+    handlePay(item);
   };
 
   const onDonateChoiceSelect = (amount) => {
