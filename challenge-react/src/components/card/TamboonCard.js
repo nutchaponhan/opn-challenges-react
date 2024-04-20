@@ -1,6 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 
 import Card from './Card';
+
+const StyledImage = styled.img`
+  width: 100%;
+  height: 250px;
+`;
+
+const ActionBarLayout = styled.div`
+  display: flex;
+  padding: 10px;
+  justify-content: space-between;
+`;
+
+const TamboonCharityImage = ({ src, alt }) => {
+  return <StyledImage src={src} alt={alt} />;
+};
+
+const TamboonActionBar = ({ name, onClick }) => {
+  return (
+    <ActionBarLayout>
+      <span>{name}</span>
+      <button onClick={onClick}>Donate</button>
+    </ActionBarLayout>
+  );
+};
 
 const TamboonCard = ({
   payments,
@@ -9,6 +34,7 @@ const TamboonCard = ({
   handlePay,
   handleSelect,
 }) => {
+  const [onDonate, setOnDonate] = useState(false);
   const imgPath = `/images/${item.image}`;
 
   const paymentChoice = payments.map((amount, j) => (
@@ -20,12 +46,10 @@ const TamboonCard = ({
 
   return (
     <Card>
-      <img src={imgPath} width={'100%'} />
-      <p>{item.name}</p>
-      {paymentChoice}
-      <button onClick={() => handlePay(item.id, selectedAmount, item.currency)}>
-        Pay
-      </button>
+      <div>
+        <TamboonCharityImage src={imgPath} alt={item.name} />
+        <TamboonActionBar name={item.name} onClick={() => setOnDonate(true)} />
+      </div>
     </Card>
   );
 };
