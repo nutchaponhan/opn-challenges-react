@@ -20,21 +20,21 @@ Fortunately, the API server is already done. You will need to grab on the requir
 Well, grap your guns, stock up your food and bring down your armor. We gonna need it for tonight!  
 **Here are the tasks you must complete:**
 
-- [ ] Complete the application according to the design (image above).
-- [ ] Complete these features that are not in the design (you have freedom to design and position to display).
+- [x] Complete the application according to the design (image above).
+- [x] Complete these features that are not in the design (you have freedom to design and position to display).
   - Display all donation amount.
   - Display a message when paid.
-- [ ] Make the donation feature works correctly.
+- [x] Make the donation feature works correctly.
   - Amount in all donations should be displayed correctly despite users close and come back later.
   - Database (db.json) should have the new valid data when paid.
-- [ ] Refactor the code to be more readable and enhance reusability.
-- [ ] Use [styled-component](https://www.styled-components.com/), [JSS](https://cssinjs.org/) or CSS, for styling part.
-- [ ] Write a nice commit message and order it well.
-- [ ] Display well in most modern browser (Google Chrome, Safari, Firefox).
+- [x] Refactor the code to be more readable and enhance reusability.
+- [x] Use [styled-component](https://www.styled-components.com/), [JSS](https://cssinjs.org/) or CSS, for styling part.
+- [x] Write a nice commit message and order it well.
+- [x] Display well in most modern browser (Google Chrome, Safari, Firefox).
 
 #### Bonus
 
-- [ ] Supporting different screen sizes (responsive).
+- [x] Supporting different screen sizes (responsive).
 - [ ] Write helpers or components unit tests with [jest](https://facebook.github.io/jest/).
 
 ## Rules
@@ -69,13 +69,60 @@ If you notice more bugs in the original implementation you can add fixes for tho
 
 Let's rock! :metal:
 
-## Applicant Extra Document
+## Applicant (nutchapon) Extra Document
 
-project setup change log to complete running application
+### How to run project smoothly.
 
-- [x] update webpack proxy config
-- [x] update webpack version to `5.91.0` to fix .mjs file type
-- [x] change app state redux store pattern to use reduxToolkit
-- [x] update babel config to transform runtime to support `async await` syntax
-- [x] update babel config support `css`
-- [x] adding toast and custom hooks
+1. verify node version is 16 `node -v`
+
+   1.1 if node version = 16 skip to step 2
+
+   1.2 run `nvm use 16` or `nvm install 16 && nvm use 16`
+
+2. install dependency `yarn` or `npm install`
+
+3. start API-server `yarn server`
+
+4. start Client `yarn client`
+
+5. start using app
+
+optionals
+
+6. simulate networking (slow or fail) to see lovely message toast ❤️
+
+   6.1 open network tab (assume using chrome)
+
+   - for mac `Command + Option + I`
+   - for window `Ctrl + Shift + I`
+
+     6.2 set networking speed to `slow 3G` or `Offline`
+
+   <img src='./resources/process-pending.gif'>
+   <img src='./resources/process-fail.gif'>
+
+### Project improvement details 😁.
+
+- webpack
+
+  - added proxy config to solve CORS problem
+  - update version to `5.91.0` to work with .mjs file (from new library)
+
+- redux store
+
+  - store pattern to use reduxToolkit
+
+- babel
+
+  - added babel config to transform runtime to support `async await` syntax
+  - added babel config support `css`
+
+- toast
+
+  - added react-toastify into application
+
+- react
+
+  - change react syntax from class to function component
+  - change fetcher from isomorphic-fetch to axios
+  - change react life cycle from class to hooks
