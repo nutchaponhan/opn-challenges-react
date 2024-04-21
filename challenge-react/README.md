@@ -71,7 +71,25 @@ Let's rock! :metal:
 
 ## Applicant (nutchapon) Extra Document
 
-### How to run project smoothly.
+### Project clone
+
+1. if using patches file
+
+   1.1 apply all patches to master branch
+
+   1.2 go to **How to run project** section.
+
+2. if using my own github (in case something wrong with patches file)
+
+   2.1 go to `https://github.com/nutchaponhan/opn-challenges-react`
+
+   2.2 clone repo `git clone https://github.com/nutchaponhan/opn-challenges-react`
+
+   2.3 make sure that checkout to branch `nutchapon/challenght-react`
+
+   2.4 go to **How to run project** section.
+
+### How to run project.
 
 1. verify node version is 16 `node -v`
 
