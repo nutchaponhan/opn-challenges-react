@@ -1,0 +1,421 @@
+From 7779679211690734b254f73ee28207d921e51977 Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 17:37:46 +0700
+Subject: [PATCH 07/12] step7: create API instance and refactor fetcher
+
+---
+ challenge-react/db.json                       | 42 ++++++++++
+ challenge-react/package.json                  |  1 +
+ challenge-react/src/App.js                    | 76 +++++--------------
+ .../src/components/card/TamboonCard.js        | 30 +++++---
+ challenge-react/src/helper/api.js             | 17 +++++
+ challenge-react/src/store/appSlicer.js        | 37 ++++++++-
+ challenge-react/yarn.lock                     | 30 +++++++-
+ 7 files changed, 163 insertions(+), 70 deletions(-)
+ create mode 100644 challenge-react/src/helper/api.js
+
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index 8d2d5f5..14f4327 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -85,6 +85,48 @@
+       "amount": 100,
+       "currency": "THB",
+       "id": 9
++    },
++    {
++      "charitiesId": 1,
++      "amount": 0,
++      "currency": "THB",
++      "id": 10
++    },
++    {
++      "charitiesId": 1,
++      "amount": 0,
++      "currency": "THB",
++      "id": 11
++    },
++    {
++      "charitiesId": 1,
++      "amount": 0,
++      "currency": "THB",
++      "id": 12
++    },
++    {
++      "charitiesId": 1,
++      "amount": 0,
++      "currency": "THB",
++      "id": 13
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 14
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 15
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 16
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/package.json b/challenge-react/package.json
+index aee7f01..1649b84 100644
+--- a/challenge-react/package.json
++++ b/challenge-react/package.json
+@@ -13,6 +13,7 @@
+   },
+   "dependencies": {
+     "@reduxjs/toolkit": "^2.2.3",
++    "axios": "^1.6.8",
+     "isomorphic-fetch": "^3.0.0",
+     "react": "^17.0.1",
+     "react-dom": "^17.0.1",
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index 19af7eb..45a6d7e 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -1,5 +1,4 @@
+ import React, { useEffect } from 'react';
+-import fetch from 'isomorphic-fetch';
+ import { useSelector, useDispatch } from 'react-redux';
+ import styled from 'styled-components';
+ import { toast } from 'react-toastify';
+@@ -7,11 +6,7 @@ import { toast } from 'react-toastify';
+ import { TamboonCard } from './components';
+ 
+ import { summaryDonations } from './helpers';
+-import {
+-  setCharities,
+-  setPaymentTransactions,
+-  setSelectAmount,
+-} from './store/appSlicer';
++import { fetchCharities, fetchPayments, postPayment } from './store/appSlicer';
+ import { DONATE_AMOUNT } from './enum';
+ 
+ const App = () => {
+@@ -22,66 +17,36 @@ const App = () => {
+     fetchAppData();
+   }, []);
+ 
+-  const setCharitiesDispatch = (charities = []) => {
+-    dispatch(setCharities(charities));
+-  };
+-
+-  const setPaymentTransactionsDispatch = (paymentTransactions = []) => {
+-    dispatch(setPaymentTransactions(paymentTransactions));
+-  };
+-
+-  const setSelectAmountDispatch = (selectedAmount = 0) => {
+-    dispatch(setSelectAmount(selectedAmount));
+-  };
+-
+   const getDotation = (paymentTransactions = []) => {
+     return summaryDonations(paymentTransactions.map((item) => item.amount));
+   };
+ 
+   const fetchAppData = async () => {
+-    const fetchCharities = fetch('api/charities').then((resp) => {
+-      return resp.json();
+-    });
+-
+-    const fetchPayments = fetch('api/payments').then((resp) => {
+-      return resp.json();
+-    });
+-
+-    const [charities, payments] = await Promise.all([
+-      fetchCharities,
+-      fetchPayments,
+-    ]);
+-
+-    setCharitiesDispatch(charities);
+-    setPaymentTransactionsDispatch(payments);
++    dispatch(fetchCharities());
++    dispatch(fetchPayments());
+   };
+ 
+-  const handleSelect = (selectedAmount) => {
+-    setSelectAmountDispatch(selectedAmount);
+-  };
++  function handlePay(selectCharity = {}, selectAmount) {
++    const { id, currency } = selectCharity;
+ 
+-  function handlePay(selectCharity = {}) {
+-    const selectAmount = appState.selectAmount;
++    const data = {
++      charitiesId: id,
++      amount: selectAmount,
++      currency,
++    };
+ 
+-    const { id, currency } = selectCharity;
++    const onSuccess = () => {
++      toast('Donate success');
++    };
+ 
+-    fetch('api/payments', {
+-      method: 'POST',
+-      headers: {
+-        'Content-Type': 'application/json',
++    const param = {
++      data,
++      cb: {
++        onSuccess,
+       },
+-      body: JSON.stringify({
+-        charitiesId: id,
+-        amount: selectAmount,
+-        currency,
+-      }),
+-    })
+-      .then((res) => {
+-        return res.json();
+-      })
+-      .then((data) => {
+-        toast.success('donate success');
+-      });
++    };
++
++    dispatch(postPayment(param));
+   }
+ 
+   const donate = getDotation(appState?.payments);
+@@ -100,7 +65,6 @@ const App = () => {
+               payments={DONATE_AMOUNT}
+               item={charity}
+               handlePay={handlePay}
+-              handleSelect={handleSelect}
+             />
+           );
+         })}
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+index 9570923..cc92ce9 100644
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ b/challenge-react/src/components/card/TamboonCard.js
+@@ -3,14 +3,9 @@ import styled from 'styled-components';
+ 
+ import Card from './Card';
+ 
+-const TamboonCard = ({
+-  payments,
+-  item,
+-  selectedAmount,
+-  handlePay,
+-  handleSelect,
+-}) => {
++const TamboonCard = ({ payments, item, handlePay }) => {
+   const [onDonate, setOnDonate] = useState(false);
++  const [selectAmount, setSelectAmount] = useState(null);
+   const imgPath = `/images/${item.image}`;
+ 
+   const toggle = () => {
+@@ -19,11 +14,12 @@ const TamboonCard = ({
+ 
+   const onDonateSubmit = () => {
+     toggle();
+-    handlePay(item);
++    handlePay(item, selectAmount);
++    setSelectAmount(null);
+   };
+ 
+   const onDonateChoiceSelect = (amount) => {
+-    handleSelect(amount);
++    setSelectAmount(amount);
+   };
+ 
+   return (
+@@ -33,6 +29,7 @@ const TamboonCard = ({
+         <TamboonActionBar name={item.name} onClick={toggle} />
+       </TamboonContent>
+       <TamboonDonate
++        selected={selectAmount}
+         choice={payments}
+         onDonate={onDonate}
+         onSubmit={onDonateSubmit}
+@@ -71,10 +68,21 @@ const DonateChoiceSection = styled.div`
+   gap: 12px;
+ `;
+ 
+-const TamboonDonate = ({ onDonate, choice = [], onSubmit, onSelect }) => {
++const TamboonDonate = ({
++  selected,
++  choice = [],
++  onDonate,
++  onSubmit,
++  onSelect,
++}) => {
+   const paymentChoice = choice.map((amount, j) => (
+     <label key={j}>
+-      <input type="radio" name="payment" onClick={() => onSelect(amount)} />
++      <input
++        type="radio"
++        name="payment"
++        checked={amount === selected}
++        onChange={() => onSelect(amount)}
++      />
+       {amount}
+     </label>
+   ));
+diff --git a/challenge-react/src/helper/api.js b/challenge-react/src/helper/api.js
+new file mode 100644
+index 0000000..d27f555
+--- /dev/null
++++ b/challenge-react/src/helper/api.js
+@@ -0,0 +1,17 @@
++import axios from 'axios';
++
++const PROXY_API_SERVER = 'api';
++
++const axiosInstance = axios.create({
++  baseURL: PROXY_API_SERVER,
++  timeout: 10000,
++});
++
++export const API = {
++  GET: (url, config) => {
++    return axiosInstance.get(url, config);
++  },
++  POST: (url, data, config) => {
++    return axiosInstance.post(url, data, config);
++  },
++};
+diff --git a/challenge-react/src/store/appSlicer.js b/challenge-react/src/store/appSlicer.js
+index 4c4ca2c..0345f58 100644
+--- a/challenge-react/src/store/appSlicer.js
++++ b/challenge-react/src/store/appSlicer.js
+@@ -1,11 +1,32 @@
+-import { createSlice } from '@reduxjs/toolkit';
++import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
++
++import { API } from '../helper/api';
++
++export const fetchCharities = createAsyncThunk('charities/getAll', async () => {
++  const response = await API.GET('/charities');
++  return response.data;
++});
++
++export const fetchPayments = createAsyncThunk('payments/getAll', async () => {
++  const response = await API.GET('/payments');
++  return response.data;
++});
++
++export const postPayment = createAsyncThunk('payments/post', async (params) => {
++  const { data, cb } = params;
++
++  const response = await API.POST('/payments', data);
++
++  cb?.onSuccess();
++
++  return response.data;
++});
+ 
+ const appSlice = createSlice({
+   name: 'app',
+   initialState: {
+     charities: [],
+     payments: [],
+-    selectAmount: 0,
+   },
+   reducers: {
+     setSelectAmount: (state, action) => {
+@@ -18,6 +39,18 @@ const appSlice = createSlice({
+       state.payments = action.payload;
+     },
+   },
++  extraReducers: (builder) => {
++    builder.addCase(fetchCharities.fulfilled, (state, action) => {
++      state.charities = action.payload;
++    });
++    builder.addCase(fetchPayments.fulfilled, (state, action) => {
++      state.payments = action.payload;
++    });
++    builder.addCase(postPayment.fulfilled, (state, action) => {
++      const newPaymentTransaction = action.payload;
++      state.payments.push(newPaymentTransaction);
++    });
++  },
+ });
+ 
+ export const { setSelectAmount, setCharities, setPaymentTransactions } =
+diff --git a/challenge-react/yarn.lock b/challenge-react/yarn.lock
+index 4c78242..3cda521 100644
+--- a/challenge-react/yarn.lock
++++ b/challenge-react/yarn.lock
+@@ -1878,6 +1878,15 @@ aws4@^1.8.0:
+   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
+   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
+ 
++axios@^1.6.8:
++  version "1.6.8"
++  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.8.tgz#66d294951f5d988a00e87a0ffb955316a619ea66"
++  integrity sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==
++  dependencies:
++    follow-redirects "^1.15.6"
++    form-data "^4.0.0"
++    proxy-from-env "^1.1.0"
++
+ babel-eslint@^10.1.0:
+   version "10.1.0"
+   resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-10.1.0.tgz#6968e568a910b78fb3779cdd8b6ac2f479943232"
+@@ -2440,7 +2449,7 @@ colorette@^1.2.1:
+   resolved "https://registry.yarnpkg.com/colorette/-/colorette-1.2.1.tgz#4d0b921325c14faf92633086a536db6e89564b1b"
+   integrity sha512-puCDz0CzydiSYOrnXpz/PKd69zRrribezjtE9yd4zvytoRc8+RY/KJPvtPFKZS3E3wP6neGyMe0vOTlHO5L3Pw==
+ 
+-combined-stream@^1.0.6, combined-stream@~1.0.6:
++combined-stream@^1.0.6, combined-stream@^1.0.8, combined-stream@~1.0.6:
+   version "1.0.8"
+   resolved "https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
+   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
+@@ -3587,6 +3596,11 @@ follow-redirects@^1.0.0:
+   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.1.tgz#5f69b813376cee4fd0474a3aba835df04ab763b7"
+   integrity sha512-SSG5xmZh1mkPGyKzjZP8zLjltIfpW32Y5QpdNJyjcfGxK3qo3NDDkZOZSFiGn1A6SclQxY9GzEwAHQ3dmYRWpg==
+ 
++follow-redirects@^1.15.6:
++  version "1.15.6"
++  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
++  integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
++
+ for-in@^1.0.2:
+   version "1.0.2"
+   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
+@@ -3597,6 +3611,15 @@ forever-agent@~0.6.1:
+   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
+   integrity sha1-+8cfDEGt6zf5bFd60e1C2P2sypE=
+ 
++form-data@^4.0.0:
++  version "4.0.0"
++  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz#93919daeaf361ee529584b9b31664dc12c9fa452"
++  integrity sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==
++  dependencies:
++    asynckit "^0.4.0"
++    combined-stream "^1.0.8"
++    mime-types "^2.1.12"
++
+ form-data@~2.3.2:
+   version "2.3.3"
+   resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.3.3.tgz#dcce52c05f644f298c6a7ab936bd724ceffbf3a6"
+@@ -6201,6 +6224,11 @@ proxy-addr@~2.0.5:
+     forwarded "~0.1.2"
+     ipaddr.js "1.9.1"
+ 
++proxy-from-env@^1.1.0:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
++  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
++
+ prr@~1.0.1:
+   version "1.0.1"
+   resolved "https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
+-- 
+2.43.1
+

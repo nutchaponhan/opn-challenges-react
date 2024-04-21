@@ -1,0 +1,509 @@
+From 51ea5020632f2bdd362f483e515900af9b0f6cbc Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sun, 21 Apr 2024 10:15:43 +0700
+Subject: [PATCH 10/12] step10: update display message and add total donate
+ into each Tamboon Card
+
+---
+ .vscode/settings.json                         |   9 +
+ challenge-react/db.json                       | 308 +-----------------
+ challenge-react/src/App.js                    |  16 +-
+ .../src/components/card/TamboonCard.js        |  13 +-
+ challenge-react/src/helper/utils.js           |  13 +
+ 5 files changed, 51 insertions(+), 308 deletions(-)
+ create mode 100644 .vscode/settings.json
+
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000..b4d5393
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,9 @@
++{
++  "css.validate": false,
++  "editor.formatOnSave": true,
++  "editor.tabSize": 2,
++  "editor.codeActionsOnSave": {
++    "source.fixAll": "explicit"
++  },
++  "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" }
++}
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index de3514c..7307a06 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -33,340 +33,58 @@
+   ],
+   "payments": [
+     {
+-      "charitiesId": 2,
+-      "amount": 10,
++      "charitiesId": 1,
++      "amount": 100,
+       "currency": "THB",
+       "id": 1
+     },
+     {
+       "charitiesId": 1,
+-      "amount": 20,
+-      "currency": "THB",
+-      "id": 2
+-    },
+-    {
+-      "charitiesId": 3,
+       "amount": 50,
+       "currency": "THB",
+-      "id": 3
+-    },
+-    {
+-      "charitiesId": 4,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 4
++      "id": 2
+     },
+     {
+       "charitiesId": 2,
+       "amount": 500,
+       "currency": "THB",
+-      "id": 5
+-    },
+-    {
+-      "charitiesId": 5,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 6
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 7
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 8
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 9
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 0,
+-      "currency": "THB",
+-      "id": 10
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 0,
+-      "currency": "THB",
+-      "id": 11
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 0,
+-      "currency": "THB",
+-      "id": 12
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 0,
+-      "currency": "THB",
+-      "id": 13
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 14
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 10,
+-      "currency": "THB",
+-      "id": 15
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 16
++      "id": 3
+     },
+     {
+       "charitiesId": 2,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 17
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 18
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 19
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 20
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 21
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 22
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 23
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 24
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 25
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 26
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 27
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 28
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 29
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 50,
+-      "currency": "THB",
+-      "id": 30
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 50,
+-      "currency": "THB",
+-      "id": 31
+-    },
+-    {
+-      "charitiesId": 1,
+       "amount": 50,
+       "currency": "THB",
+-      "id": 32
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 10,
+-      "currency": "THB",
+-      "id": 33
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 500,
+-      "currency": "THB",
+-      "id": 34
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 50,
+-      "currency": "THB",
+-      "id": 35
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 50,
+-      "currency": "THB",
+-      "id": 36
++      "id": 4
+     },
+     {
+       "charitiesId": 1,
+       "amount": 50,
+       "currency": "THB",
+-      "id": 37
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 38
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 39
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 40
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 41
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 42
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 43
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 44
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 45
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 46
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 47
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 48
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 49
+-    },
+-    {
+-      "charitiesId": 2,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 50
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 51
+-    },
+-    {
+-      "charitiesId": 1,
+-      "amount": 100,
+-      "currency": "THB",
+-      "id": 52
++      "id": 5
+     },
+     {
+       "charitiesId": 1,
+       "amount": 100,
+       "currency": "THB",
+-      "id": 53
++      "id": 6
+     },
+     {
+       "charitiesId": 1,
+       "amount": 100,
+       "currency": "THB",
+-      "id": 54
++      "id": 7
+     },
+     {
+-      "charitiesId": 1,
++      "charitiesId": 3,
+       "amount": 100,
+       "currency": "THB",
+-      "id": 55
++      "id": 8
+     },
+     {
+-      "charitiesId": 1,
+-      "amount": 100,
++      "charitiesId": 4,
++      "amount": 500,
+       "currency": "THB",
+-      "id": 56
++      "id": 9
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index 6ed14cc..557a63b 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -4,21 +4,17 @@ import styled from 'styled-components';
+ import { TamboonCard } from './components';
+ 
+ import { useAppHook } from './hooks/appHook';
+-import { summaryDonations } from './helper/utils';
++import { groupDonations } from './helper/utils';
+ import { toast } from './helper/toast';
+ import { DONATE_AMOUNT } from './enum';
+ 
+-const getDotation = (paymentTransactions = []) => {
+-  return summaryDonations(paymentTransactions.map((item) => item.amount));
+-};
+-
+ const App = () => {
+   const { state: appState, action } = useAppHook();
+ 
+-  const donate = getDotation(appState?.payments);
++  const groupDonate = groupDonations(appState?.payments);
+ 
+   function handlePay(selectCharity = {}, selectAmount) {
+-    const { id, currency } = selectCharity;
++    const { id, name, currency } = selectCharity;
+ 
+     const param = {
+       data: {
+@@ -28,10 +24,9 @@ const App = () => {
+       },
+       cb: {
+         onSuccess: () => {
+-          const newTotalDonate = donate + selectAmount;
+           toast.success({
+             title: 'Donate Successful ❤️',
+-            content: `Total donation ${newTotalDonate} ${currency}`,
++            content: `You donation ${selectAmount} ${currency} to ${name}`,
+           });
+         },
+         onPending: () => {
+@@ -51,11 +46,14 @@ const App = () => {
+       <Header>Omise Tamboon React</Header>
+       <Layout>
+         {appState?.charities?.map((charity, i) => {
++          const totalCharityDonated = groupDonate[charity.id] || [0];
++
+           return (
+             <TamboonCard
+               key={charity.id}
+               payments={DONATE_AMOUNT}
+               item={charity}
++              total={totalCharityDonated}
+               handlePay={handlePay}
+             />
+           );
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+index bb04137..8b7ee9f 100644
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ b/challenge-react/src/components/card/TamboonCard.js
+@@ -3,7 +3,7 @@ import styled from 'styled-components';
+ 
+ import Card from './Card';
+ 
+-const TamboonCard = ({ payments, item, handlePay }) => {
++const TamboonCard = ({ payments, item, total, handlePay }) => {
+   const [onDonate, setOnDonate] = useState(false);
+   const [selectAmount, setSelectAmount] = useState(null);
+ 
+@@ -32,7 +32,12 @@ const TamboonCard = ({ payments, item, handlePay }) => {
+     <Card>
+       <TamboonContentSide isDonate={onDonate}>
+         <TamboonCharityImage src={imgPath} alt={item.name} />
+-        <TamboonActionBar name={item.name} onClick={toggle} />
++        <TamboonActionBar
++          name={item.name}
++          currency={item.currency}
++          total={total}
++          onClick={toggle}
++        />
+       </TamboonContentSide>
+       <TamboonDonateSide
+         selected={selectAmount}
+@@ -151,10 +156,10 @@ const ActionBarButton = styled.button`
+   }
+ `;
+ 
+-const TamboonActionBar = ({ name, onClick }) => {
++const TamboonActionBar = ({ name, currency, total, onClick }) => {
+   return (
+     <ActionBarLayout>
+-      <span>{name}</span>
++      <span>{`${name} (${total} ${currency})`}</span>
+       <ActionBarButton onClick={onClick}>Donate</ActionBarButton>
+     </ActionBarLayout>
+   );
+diff --git a/challenge-react/src/helper/utils.js b/challenge-react/src/helper/utils.js
+index 89ef2ab..d6790c6 100644
+--- a/challenge-react/src/helper/utils.js
++++ b/challenge-react/src/helper/utils.js
+@@ -1,2 +1,15 @@
+ export const summaryDonations = (donations) =>
+   donations.reduce((accumulator, value) => accumulator + value, 0);
++
++export const groupDonations = (payments = []) => {
++  return payments.reduce((acc, transaction) => {
++    const { charitiesId, amount = 0 } = transaction;
++
++    const sumGroupDonate = acc?.[charitiesId];
++    const totalDonate = sumGroupDonate ? sumGroupDonate + amount : amount;
++
++    acc[charitiesId] = totalDonate;
++
++    return acc;
++  }, {});
++};
+-- 
+2.43.1
+

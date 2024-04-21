@@ -1,0 +1,338 @@
+From 1815cbf24a54e1ad173146795ce634bd8a77ee05 Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 18:40:15 +0700
+Subject: [PATCH 08/12] step8: refactor fetch to custom hooks
+
+---
+ challenge-react/README.md              |   1 +
+ challenge-react/db.json                | 144 +++++++++++++++++++++++++
+ challenge-react/src/App.js             |  50 ++++-----
+ challenge-react/src/hooks/appHook.js   |  23 ++++
+ challenge-react/src/index.js           |   2 +-
+ challenge-react/src/store/appSlicer.js |  22 ++--
+ 6 files changed, 204 insertions(+), 38 deletions(-)
+ create mode 100644 challenge-react/src/hooks/appHook.js
+
+diff --git a/challenge-react/README.md b/challenge-react/README.md
+index 28000de..60cd64a 100644
+--- a/challenge-react/README.md
++++ b/challenge-react/README.md
+@@ -78,3 +78,4 @@ project setup change log to complete running application
+ - [x] change app state redux store pattern to use reduxToolkit
+ - [x] update babel config to transform runtime to support `async await` syntax
+ - [x] update babel config support `css`
++- [x] adding toast and custom hooks
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index 14f4327..7f12beb 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -127,6 +127,150 @@
+       "amount": 500,
+       "currency": "THB",
+       "id": 16
++    },
++    {
++      "charitiesId": 2,
++      "amount": 500,
++      "currency": "THB",
++      "id": 17
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 18
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 19
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 20
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 21
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 22
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 23
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 24
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 25
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 26
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 27
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 28
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 29
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 30
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 31
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 32
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 33
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 34
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 35
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 36
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 37
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 38
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 39
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 40
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index 45a6d7e..52a9be8 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -1,52 +1,40 @@
+-import React, { useEffect } from 'react';
+-import { useSelector, useDispatch } from 'react-redux';
++import React from 'react';
+ import styled from 'styled-components';
+ import { toast } from 'react-toastify';
+ 
+ import { TamboonCard } from './components';
+ 
++import { useAppHook } from './hooks/appHook';
+ import { summaryDonations } from './helpers';
+-import { fetchCharities, fetchPayments, postPayment } from './store/appSlicer';
+ import { DONATE_AMOUNT } from './enum';
+ 
+-const App = () => {
+-  const appState = useSelector((state) => state.app);
+-  const dispatch = useDispatch();
+-
+-  useEffect(() => {
+-    fetchAppData();
+-  }, []);
+-
+-  const getDotation = (paymentTransactions = []) => {
+-    return summaryDonations(paymentTransactions.map((item) => item.amount));
+-  };
++const getDotation = (paymentTransactions = []) => {
++  return summaryDonations(paymentTransactions.map((item) => item.amount));
++};
+ 
+-  const fetchAppData = async () => {
+-    dispatch(fetchCharities());
+-    dispatch(fetchPayments());
+-  };
++const App = () => {
++  const { state: appState, action } = useAppHook();
+ 
+   function handlePay(selectCharity = {}, selectAmount) {
+     const { id, currency } = selectCharity;
+ 
+-    const data = {
+-      charitiesId: id,
+-      amount: selectAmount,
+-      currency,
+-    };
+-
+-    const onSuccess = () => {
+-      toast('Donate success');
+-    };
+-
+     const param = {
+-      data,
++      data: {
++        charitiesId: id,
++        amount: selectAmount,
++        currency,
++      },
+       cb: {
+-        onSuccess,
++        onSuccess: () => {
++          toast.success('Donate Successful ❤️');
++        },
++        onPending: () => {
++          toast.info('Processing . . .');
++        },
+       },
+     };
+ 
+-    dispatch(postPayment(param));
++    action.donate(param);
+   }
+ 
+   const donate = getDotation(appState?.payments);
+diff --git a/challenge-react/src/hooks/appHook.js b/challenge-react/src/hooks/appHook.js
+new file mode 100644
+index 0000000..ee24264
+--- /dev/null
++++ b/challenge-react/src/hooks/appHook.js
+@@ -0,0 +1,23 @@
++import { useCallback, useEffect } from 'react';
++import { useSelector, useDispatch } from 'react-redux';
++
++import { fetchCharities, fetchPayments, postPayment } from '../store/appSlicer';
++
++export const useAppHook = () => {
++  const appState = useSelector((state) => state.app);
++  const dispatch = useDispatch();
++
++  const donate = useCallback(async (params) => {
++    dispatch(postPayment(params));
++  }, []);
++
++  useEffect(() => {
++    dispatch(fetchCharities());
++    dispatch(fetchPayments());
++  }, []);
++
++  return {
++    state: appState,
++    action: { donate },
++  };
++};
+diff --git a/challenge-react/src/index.js b/challenge-react/src/index.js
+index 7706d0d..572f3af 100644
+--- a/challenge-react/src/index.js
++++ b/challenge-react/src/index.js
+@@ -13,7 +13,7 @@ import { store } from './store/appStore';
+ render(
+   <Provider store={store}>
+     <App />
+-    <ToastContainer />
++    <ToastContainer newestOnTop={true} />
+   </Provider>,
+   document.getElementById('root')
+ );
+diff --git a/challenge-react/src/store/appSlicer.js b/challenge-react/src/store/appSlicer.js
+index 0345f58..7a3d83e 100644
+--- a/challenge-react/src/store/appSlicer.js
++++ b/challenge-react/src/store/appSlicer.js
+@@ -12,15 +12,25 @@ export const fetchPayments = createAsyncThunk('payments/getAll', async () => {
+   return response.data;
+ });
+ 
+-export const postPayment = createAsyncThunk('payments/post', async (params) => {
+-  const { data, cb } = params;
++export const postPayment = createAsyncThunk(
++  'payments/post',
++  async (params, { rejectWithValue }) => {
++    const { data, cb } = params;
+ 
+-  const response = await API.POST('/payments', data);
++    cb?.onPending();
+ 
+-  cb?.onSuccess();
++    try {
++      const response = await API.POST('/payments', data);
++      const responseData = response.data;
+ 
+-  return response.data;
+-});
++      cb?.onSuccess();
++
++      return responseData;
++    } catch (err) {
++      return rejectWithValue(null);
++    }
++  }
++);
+ 
+ const appSlice = createSlice({
+   name: 'app',
+-- 
+2.43.1
+

@@ -1,0 +1,358 @@
+From b2f8eec1dda5194a758ed6eebb0c9ca52348a94c Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 15:12:26 +0700
+Subject: [PATCH 03/12] step3: add global reset css styling and update babel
+ config
+
+---
+ challenge-react/README.md                     |  1 +
+ challenge-react/package.json                  |  2 +
+ challenge-react/src/app.css                   | 43 +++++++++
+ .../src/components/card/TamboonCard.js        | 38 ++++++--
+ challenge-react/src/index.js                  |  1 +
+ challenge-react/webpack.config.js             |  4 +
+ challenge-react/yarn.lock                     | 92 ++++++++++++++++++-
+ 7 files changed, 171 insertions(+), 10 deletions(-)
+ create mode 100644 challenge-react/src/app.css
+
+diff --git a/challenge-react/README.md b/challenge-react/README.md
+index b2e6652..1454543 100644
+--- a/challenge-react/README.md
++++ b/challenge-react/README.md
+@@ -77,3 +77,4 @@ project refresh
+ - [x] update webpack version to `5.91.0` to fix .mjs file type
+ - [x] change app state redux store pattern to use reduxToolkit
+ - [x] update babel config to transform runtime to support `async await` syntax
++- [x] update babel config support `css`
+diff --git a/challenge-react/package.json b/challenge-react/package.json
+index 18d026c..5dd90ab 100644
+--- a/challenge-react/package.json
++++ b/challenge-react/package.json
+@@ -31,11 +31,13 @@
+     "babel-eslint": "^10.1.0",
+     "babel-loader": "^8.2.2",
+     "babel-plugin-syntax-dynamic-import": "^6.18.0",
++    "css-loader": "6.8.1",
+     "eslint": "^7.17.0",
+     "eslint-plugin-react": "^7.22.0",
+     "html-webpack-plugin": "^4.5.1",
+     "jest": "^26.6.3",
+     "json-server": "^0.16.3",
++    "style-loader": "3.3.3",
+     "webpack": "^5.91.0",
+     "webpack-cli": "^4.3.1",
+     "webpack-dev-server": "^3.11.2"
+diff --git a/challenge-react/src/app.css b/challenge-react/src/app.css
+new file mode 100644
+index 0000000..28a80dd
+--- /dev/null
++++ b/challenge-react/src/app.css
+@@ -0,0 +1,43 @@
++/*
++  Global Reset CSS styling thankyou: Josh's Custom 
++  https://www.joshwcomeau.com/css/custom-css-reset/
++*/
++*,
++*::before,
++*::after {
++  box-sizing: border-box;
++}
++* {
++  margin: 0;
++}
++body {
++  line-height: 1.5;
++  -webkit-font-smoothing: antialiased;
++}
++img,
++picture,
++video,
++canvas,
++svg {
++  display: block;
++  max-width: 100%;
++}
++input,
++button,
++textarea,
++select {
++  font: inherit;
++}
++p,
++h1,
++h2,
++h3,
++h4,
++h5,
++h6 {
++  overflow-wrap: break-word;
++}
++#root,
++#__next {
++  isolation: isolate;
++}
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+index 515ba73..5ecdc38 100644
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ b/challenge-react/src/components/card/TamboonCard.js
+@@ -1,7 +1,32 @@
+-import React from 'react';
++import React, { useState } from 'react';
++import styled from 'styled-components';
+ 
+ import Card from './Card';
+ 
++const StyledImage = styled.img`
++  width: 100%;
++  height: 250px;
++`;
++
++const ActionBarLayout = styled.div`
++  display: flex;
++  padding: 10px;
++  justify-content: space-between;
++`;
++
++const TamboonCharityImage = ({ src, alt }) => {
++  return <StyledImage src={src} alt={alt} />;
++};
++
++const TamboonActionBar = ({ name, onClick }) => {
++  return (
++    <ActionBarLayout>
++      <span>{name}</span>
++      <button onClick={onClick}>Donate</button>
++    </ActionBarLayout>
++  );
++};
++
+ const TamboonCard = ({
+   payments,
+   item,
+@@ -9,6 +34,7 @@ const TamboonCard = ({
+   handlePay,
+   handleSelect,
+ }) => {
++  const [onDonate, setOnDonate] = useState(false);
+   const imgPath = `/images/${item.image}`;
+ 
+   const paymentChoice = payments.map((amount, j) => (
+@@ -20,12 +46,10 @@ const TamboonCard = ({
+ 
+   return (
+     <Card>
+-      <img src={imgPath} width={'100%'} />
+-      <p>{item.name}</p>
+-      {paymentChoice}
+-      <button onClick={() => handlePay(item.id, selectedAmount, item.currency)}>
+-        Pay
+-      </button>
++      <div>
++        <TamboonCharityImage src={imgPath} alt={item.name} />
++        <TamboonActionBar name={item.name} onClick={() => setOnDonate(true)} />
++      </div>
+     </Card>
+   );
+ };
+diff --git a/challenge-react/src/index.js b/challenge-react/src/index.js
+index f5cc7b1..820551b 100644
+--- a/challenge-react/src/index.js
++++ b/challenge-react/src/index.js
+@@ -3,6 +3,7 @@ import { render } from 'react-dom';
+ import { Provider } from 'react-redux';
+ 
+ import App from './App';
++import './app.css';
+ 
+ import { store } from './store/appStore';
+ 
+diff --git a/challenge-react/webpack.config.js b/challenge-react/webpack.config.js
+index c145198..421e03f 100644
+--- a/challenge-react/webpack.config.js
++++ b/challenge-react/webpack.config.js
+@@ -36,6 +36,10 @@ const config = {
+           loader: 'babel-loader',
+         },
+       },
++      {
++        test: /\.css$/i,
++        use: ['style-loader', 'css-loader'],
++      },
+     ],
+   },
+ 
+diff --git a/challenge-react/yarn.lock b/challenge-react/yarn.lock
+index 6e573ac..a6734d3 100644
+--- a/challenge-react/yarn.lock
++++ b/challenge-react/yarn.lock
+@@ -2606,6 +2606,20 @@ css-color-keywords@^1.0.0:
+   resolved "https://registry.yarnpkg.com/css-color-keywords/-/css-color-keywords-1.0.0.tgz#fea2616dc676b2962686b3af8dbdbe180b244e05"
+   integrity sha1-/qJhbcZ2spYmhrOvjb2+GAskTgU=
+ 
++css-loader@6.8.1:
++  version "6.8.1"
++  resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-6.8.1.tgz#0f8f52699f60f5e679eab4ec0fcd68b8e8a50a88"
++  integrity sha512-xDAXtEVGlD0gJ07iclwWVkLoZOpEvAWaSyf6W18S2pOC//K8+qUDIx8IIT3D+HjnmkJPQeesOPv5aiUaJsCM2g==
++  dependencies:
++    icss-utils "^5.1.0"
++    postcss "^8.4.21"
++    postcss-modules-extract-imports "^3.0.0"
++    postcss-modules-local-by-default "^4.0.3"
++    postcss-modules-scope "^3.0.0"
++    postcss-modules-values "^4.0.0"
++    postcss-value-parser "^4.2.0"
++    semver "^7.3.8"
++
+ css-select@^2.0.2:
+   version "2.1.0"
+   resolved "https://registry.yarnpkg.com/css-select/-/css-select-2.1.0.tgz#6a34653356635934a81baca68d0255432105dbef"
+@@ -2630,6 +2644,11 @@ css-what@^3.2.1:
+   resolved "https://registry.yarnpkg.com/css-what/-/css-what-3.4.2.tgz#ea7026fcb01777edbde52124e21f327e7ae950e4"
+   integrity sha512-ACUm3L0/jiZTqfzRM3Hi9Q8eZqd6IK37mMWPLz9PJxkLWllYeRf+EHUSHYEtFop2Eqytaq1FizFVh7XfBnXCDQ==
+ 
++cssesc@^3.0.0:
++  version "3.0.0"
++  resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-3.0.0.tgz#37741919903b868565e1c09ea747445cd18983ee"
++  integrity sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==
++
+ cssom@^0.4.4:
+   version "0.4.4"
+   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
+@@ -4040,6 +4059,11 @@ iconv-lite@0.4.24:
+   dependencies:
+     safer-buffer ">= 2.1.2 < 3"
+ 
++icss-utils@^5.0.0, icss-utils@^5.1.0:
++  version "5.1.0"
++  resolved "https://registry.yarnpkg.com/icss-utils/-/icss-utils-5.1.0.tgz#c6be6858abd013d768e98366ae47e25d5887b1ae"
++  integrity sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==
++
+ ignore@^4.0.6:
+   version "4.0.6"
+   resolved "https://registry.yarnpkg.com/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
+@@ -5469,7 +5493,7 @@ nanoid@^3.1.16:
+   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.20.tgz#badc263c6b1dcf14b71efaa85f6ab4c1d6cfc788"
+   integrity sha512-a1cQNyczgKbLX9jwbS/+d7W8fX/RfgYR7lVWwWOGIPNgK2m0MWvrGF6/m4kk6U3QcFMnZf3RIhL0v2Jgh/0Uxw==
+ 
+-nanoid@^3.3.6:
++nanoid@^3.3.6, nanoid@^3.3.7:
+   version "3.3.7"
+   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.7.tgz#d0c301a691bc8d54efa0a2226ccf3fe2fd656bd8"
+   integrity sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==
+@@ -6040,11 +6064,52 @@ posix-character-classes@^0.1.0:
+   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
+   integrity sha1-AerA/jta9xoqbAL+q7jB/vfgDqs=
+ 
++postcss-modules-extract-imports@^3.0.0:
++  version "3.1.0"
++  resolved "https://registry.yarnpkg.com/postcss-modules-extract-imports/-/postcss-modules-extract-imports-3.1.0.tgz#b4497cb85a9c0c4b5aabeb759bb25e8d89f15002"
++  integrity sha512-k3kNe0aNFQDAZGbin48pL2VNidTF0w4/eASDsxlyspobzU3wZQLOGj7L9gfRe0Jo9/4uud09DsjFNH7winGv8Q==
++
++postcss-modules-local-by-default@^4.0.3:
++  version "4.0.5"
++  resolved "https://registry.yarnpkg.com/postcss-modules-local-by-default/-/postcss-modules-local-by-default-4.0.5.tgz#f1b9bd757a8edf4d8556e8d0f4f894260e3df78f"
++  integrity sha512-6MieY7sIfTK0hYfafw1OMEG+2bg8Q1ocHCpoWLqOKj3JXlKu4G7btkmM/B7lFubYkYWmRSPLZi5chid63ZaZYw==
++  dependencies:
++    icss-utils "^5.0.0"
++    postcss-selector-parser "^6.0.2"
++    postcss-value-parser "^4.1.0"
++
++postcss-modules-scope@^3.0.0:
++  version "3.2.0"
++  resolved "https://registry.yarnpkg.com/postcss-modules-scope/-/postcss-modules-scope-3.2.0.tgz#a43d28289a169ce2c15c00c4e64c0858e43457d5"
++  integrity sha512-oq+g1ssrsZOsx9M96c5w8laRmvEu9C3adDSjI8oTcbfkrTE8hx/zfyobUoWIxaKPO8bt6S62kxpw5GqypEw1QQ==
++  dependencies:
++    postcss-selector-parser "^6.0.4"
++
++postcss-modules-values@^4.0.0:
++  version "4.0.0"
++  resolved "https://registry.yarnpkg.com/postcss-modules-values/-/postcss-modules-values-4.0.0.tgz#d7c5e7e68c3bb3c9b27cbf48ca0bb3ffb4602c9c"
++  integrity sha512-RDxHkAiEGI78gS2ofyvCsu7iycRv7oqw5xMWn9iMoR0N/7mf9D50ecQqUo5BZ9Zh2vH4bCUR/ktCqbB9m8vJjQ==
++  dependencies:
++    icss-utils "^5.0.0"
++
++postcss-selector-parser@^6.0.2, postcss-selector-parser@^6.0.4:
++  version "6.0.16"
++  resolved "https://registry.yarnpkg.com/postcss-selector-parser/-/postcss-selector-parser-6.0.16.tgz#3b88b9f5c5abd989ef4e2fc9ec8eedd34b20fb04"
++  integrity sha512-A0RVJrX+IUkVZbW3ClroRWurercFhieevHB38sr2+l9eUClMqome3LmEmnhlNy+5Mr2EYN6B2Kaw9wYdd+VHiw==
++  dependencies:
++    cssesc "^3.0.0"
++    util-deprecate "^1.0.2"
++
+ postcss-value-parser@^4.0.2:
+   version "4.1.0"
+   resolved "https://registry.yarnpkg.com/postcss-value-parser/-/postcss-value-parser-4.1.0.tgz#443f6a20ced6481a2bda4fa8532a6e55d789a2cb"
+   integrity sha512-97DXOFbQJhk71ne5/Mt6cOu6yxsSfM0QGQyl0L25Gca4yGWEGJaig7l7gbCX623VqTBNGLRLaVUCnNkcedlRSQ==
+ 
++postcss-value-parser@^4.1.0, postcss-value-parser@^4.2.0:
++  version "4.2.0"
++  resolved "https://registry.yarnpkg.com/postcss-value-parser/-/postcss-value-parser-4.2.0.tgz#723c09920836ba6d3e5af019f92bc0971c02e514"
++  integrity sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==
++
+ postcss@8.4.31:
+   version "8.4.31"
+   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.31.tgz#92b451050a9f914da6755af352bdc0192508656d"
+@@ -6054,6 +6119,15 @@ postcss@8.4.31:
+     picocolors "^1.0.0"
+     source-map-js "^1.0.2"
+ 
++postcss@^8.4.21:
++  version "8.4.38"
++  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.38.tgz#b387d533baf2054288e337066d81c6bee9db9e0e"
++  integrity sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==
++  dependencies:
++    nanoid "^3.3.7"
++    picocolors "^1.0.0"
++    source-map-js "^1.2.0"
++
+ prelude-ls@^1.2.1:
+   version "1.2.1"
+   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
+@@ -6720,6 +6794,13 @@ semver@^7.2.1, semver@^7.3.2:
+   dependencies:
+     lru-cache "^6.0.0"
+ 
++semver@^7.3.8:
++  version "7.6.0"
++  resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
++  integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
++  dependencies:
++    lru-cache "^6.0.0"
++
+ send@0.17.1:
+   version "0.17.1"
+   resolved "https://registry.yarnpkg.com/send/-/send-0.17.1.tgz#c1d8b059f7900f7466dd4938bdc44e11ddb376c8"
+@@ -6917,7 +6998,7 @@ sockjs@^0.3.21:
+     uuid "^3.4.0"
+     websocket-driver "^0.7.4"
+ 
+-source-map-js@^1.0.2:
++source-map-js@^1.0.2, source-map-js@^1.2.0:
+   version "1.2.0"
+   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.0.tgz#16b809c162517b5b8c3e7dcd315a2a5c2612b2af"
+   integrity sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==
+@@ -7192,6 +7273,11 @@ strip-json-comments@~2.0.1:
+   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
+ 
++style-loader@3.3.3:
++  version "3.3.3"
++  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.3.3.tgz#bba8daac19930169c0c9c96706749a597ae3acff"
++  integrity sha512-53BiGLXAcll9maCYtZi2RCQZKa8NQQai5C4horqKyRmHj9H7QmcUyucrH+4KW/gBQbXM2AsB0axoEcFZPlfPcw==
++
+ styled-components@^6.1.8:
+   version "6.1.8"
+   resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.1.8.tgz#c109d36aeea52d8f049e12de2f3be39a6fc86201"
+@@ -7623,7 +7709,7 @@ use@^3.1.0:
+   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
+   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
+ 
+-util-deprecate@^1.0.1, util-deprecate@~1.0.1:
++util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
+   version "1.0.2"
+   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
+   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
+-- 
+2.43.1
+

@@ -1,0 +1,413 @@
+From 7b147a124e8bffc277d6a6eb20c957d4eda7930a Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 20:47:17 +0700
+Subject: [PATCH 09/12] step9: refactor toast and add XIcon close event on
+ Donate component
+
+---
+ challenge-react/db.json                       | 96 +++++++++++++++++++
+ challenge-react/src/App.js                    | 37 ++++---
+ challenge-react/src/app.css                   |  2 +
+ .../src/components/card/TamboonCard.js        | 47 +++++++--
+ challenge-react/src/helper/toast.js           | 31 ++++++
+ .../src/{helpers.js => helper/utils.js}       |  0
+ challenge-react/src/index.js                  |  2 +-
+ challenge-react/src/store/appSlicer.js        |  1 +
+ 8 files changed, 194 insertions(+), 22 deletions(-)
+ create mode 100644 challenge-react/src/helper/toast.js
+ rename challenge-react/src/{helpers.js => helper/utils.js} (100%)
+
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index 7f12beb..de3514c 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -271,6 +271,102 @@
+       "amount": 100,
+       "currency": "THB",
+       "id": 40
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 41
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 42
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 43
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 44
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 45
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 46
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 47
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 48
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 49
++    },
++    {
++      "charitiesId": 2,
++      "amount": 100,
++      "currency": "THB",
++      "id": 50
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 51
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 52
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 53
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 54
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 55
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 56
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index 52a9be8..6ed14cc 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -1,11 +1,11 @@
+ import React from 'react';
+ import styled from 'styled-components';
+-import { toast } from 'react-toastify';
+ 
+ import { TamboonCard } from './components';
+ 
+ import { useAppHook } from './hooks/appHook';
+-import { summaryDonations } from './helpers';
++import { summaryDonations } from './helper/utils';
++import { toast } from './helper/toast';
+ import { DONATE_AMOUNT } from './enum';
+ 
+ const getDotation = (paymentTransactions = []) => {
+@@ -15,6 +15,8 @@ const getDotation = (paymentTransactions = []) => {
+ const App = () => {
+   const { state: appState, action } = useAppHook();
+ 
++  const donate = getDotation(appState?.payments);
++
+   function handlePay(selectCharity = {}, selectAmount) {
+     const { id, currency } = selectCharity;
+ 
+@@ -26,25 +28,27 @@ const App = () => {
+       },
+       cb: {
+         onSuccess: () => {
+-          toast.success('Donate Successful ❤️');
++          const newTotalDonate = donate + selectAmount;
++          toast.success({
++            title: 'Donate Successful ❤️',
++            content: `Total donation ${newTotalDonate} ${currency}`,
++          });
+         },
+         onPending: () => {
+           toast.info('Processing . . .');
+         },
++        onError: () => {
++          toast.error('Something went wrong 🤕');
++        },
+       },
+     };
+ 
+     action.donate(param);
+   }
+ 
+-  const donate = getDotation(appState?.payments);
+-  const message = 'nice message coming soon';
+-
+   return (
+-    <div>
+-      <h1>Tamboon React</h1>
+-      <p>All donations: {donate}</p>
+-      <p>{message}</p>
++    <AppLayout>
++      <Header>Omise Tamboon React</Header>
+       <Layout>
+         {appState?.charities?.map((charity, i) => {
+           return (
+@@ -57,12 +61,16 @@ const App = () => {
+           );
+         })}
+       </Layout>
+-    </div>
++    </AppLayout>
+   );
+ };
+ 
+ export default App;
+ 
++const AppLayout = styled.div`
++  margin: 24px;
++`;
++
+ const Layout = styled.div`
+   display: grid;
+   grid-template-columns: 1fr;
+@@ -78,3 +86,10 @@ const Layout = styled.div`
+     grid-template-columns: repeat(2, 1fr);
+   }
+ `;
++
++const Header = styled.h1`
++  color: #525252;
++  text-align: center;
++
++  margin: 12px 0;
++`;
+diff --git a/challenge-react/src/app.css b/challenge-react/src/app.css
+index 28a80dd..40ea0ab 100644
+--- a/challenge-react/src/app.css
++++ b/challenge-react/src/app.css
+@@ -13,6 +13,8 @@
+ body {
+   line-height: 1.5;
+   -webkit-font-smoothing: antialiased;
++  color: #525252;
++  letter-spacing: 0.5px;
+ }
+ img,
+ picture,
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+index cc92ce9..bb04137 100644
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ b/challenge-react/src/components/card/TamboonCard.js
+@@ -6,6 +6,7 @@ import Card from './Card';
+ const TamboonCard = ({ payments, item, handlePay }) => {
+   const [onDonate, setOnDonate] = useState(false);
+   const [selectAmount, setSelectAmount] = useState(null);
++
+   const imgPath = `/images/${item.image}`;
+ 
+   const toggle = () => {
+@@ -22,18 +23,24 @@ const TamboonCard = ({ payments, item, handlePay }) => {
+     setSelectAmount(amount);
+   };
+ 
++  const onDonateClose = () => {
++    setSelectAmount(null);
++    toggle();
++  };
++
+   return (
+     <Card>
+-      <TamboonContent isDonate={onDonate}>
++      <TamboonContentSide isDonate={onDonate}>
+         <TamboonCharityImage src={imgPath} alt={item.name} />
+         <TamboonActionBar name={item.name} onClick={toggle} />
+-      </TamboonContent>
+-      <TamboonDonate
++      </TamboonContentSide>
++      <TamboonDonateSide
+         selected={selectAmount}
+         choice={payments}
+         onDonate={onDonate}
+         onSubmit={onDonateSubmit}
+         onSelect={onDonateChoiceSelect}
++        onClose={onDonateClose}
+       />
+     </Card>
+   );
+@@ -41,7 +48,7 @@ const TamboonCard = ({ payments, item, handlePay }) => {
+ 
+ export default TamboonCard;
+ 
+-const TamboonContent = styled.div`
++const TamboonContentSide = styled.div`
+   opacity: ${(props) => (props.isDonate ? 0.1 : 1)};
+ `;
+ 
+@@ -53,12 +60,18 @@ const DonateLayout = styled.div`
+   width: 100%;
+   height: 100%;
+ 
+-  letter-spacing: 0.5px;
++  display: ${(props) => !props.isDonate && 'none'};
++`;
++
++const DonateSide = styled.div`
++  position: relative;
++
++  display: flex;
+ 
+-  display: ${(props) => (props.isDonate ? 'flex' : 'none')};
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
++  height: inherit;
+   gap: 12px;
+ `;
+ 
+@@ -68,12 +81,23 @@ const DonateChoiceSection = styled.div`
+   gap: 12px;
+ `;
+ 
+-const TamboonDonate = ({
++const XIcon = styled.span`
++  position: absolute;
++  top: 24px;
++  right: 24px;
++
++  &:hover {
++    cursor: pointer;
++  }
++`;
++
++const TamboonDonateSide = ({
+   selected,
+   choice = [],
+   onDonate,
+   onSubmit,
+   onSelect,
++  onClose,
+ }) => {
+   const paymentChoice = choice.map((amount, j) => (
+     <label key={j}>
+@@ -89,9 +113,12 @@ const TamboonDonate = ({
+ 
+   return (
+     <DonateLayout isDonate={onDonate}>
+-      <span>Select the amount to donate (USD)</span>
+-      <DonateChoiceSection>{paymentChoice}</DonateChoiceSection>
+-      <button onClick={onSubmit}>Pay</button>
++      <DonateSide>
++        <span>Select the amount to donate (USD)</span>
++        <DonateChoiceSection>{paymentChoice}</DonateChoiceSection>
++        <button onClick={onSubmit}>Pay</button>
++        <XIcon onClick={onClose}>X</XIcon>
++      </DonateSide>
+     </DonateLayout>
+   );
+ };
+diff --git a/challenge-react/src/helper/toast.js b/challenge-react/src/helper/toast.js
+new file mode 100644
+index 0000000..fac907c
+--- /dev/null
++++ b/challenge-react/src/helper/toast.js
+@@ -0,0 +1,31 @@
++import React from 'react';
++import { toast as toasify } from 'react-toastify';
++
++const Msg = ({ title, content }) => {
++  return (
++    <div>
++      <h4>{title}</h4>
++      <p>{content}</p>
++    </div>
++  );
++};
++
++const messageFactory = (message) => {
++  if (typeof message === 'string') return message;
++  return <Msg title={message.title} content={message.content} />;
++};
++
++export const toast = {
++  success: (message = {}) => {
++    const msg = messageFactory(message);
++    return toasify.success(msg);
++  },
++  info: (message = {}) => {
++    const msg = messageFactory(message);
++    return toasify.info(msg);
++  },
++  error: (message = {}) => {
++    const msg = messageFactory(message);
++    return toasify.error(msg);
++  },
++};
+diff --git a/challenge-react/src/helpers.js b/challenge-react/src/helper/utils.js
+similarity index 100%
+rename from challenge-react/src/helpers.js
+rename to challenge-react/src/helper/utils.js
+diff --git a/challenge-react/src/index.js b/challenge-react/src/index.js
+index 572f3af..49155f6 100644
+--- a/challenge-react/src/index.js
++++ b/challenge-react/src/index.js
+@@ -13,7 +13,7 @@ import { store } from './store/appStore';
+ render(
+   <Provider store={store}>
+     <App />
+-    <ToastContainer newestOnTop={true} />
++    <ToastContainer autoClose={2500} newestOnTop={true} />
+   </Provider>,
+   document.getElementById('root')
+ );
+diff --git a/challenge-react/src/store/appSlicer.js b/challenge-react/src/store/appSlicer.js
+index 7a3d83e..922465d 100644
+--- a/challenge-react/src/store/appSlicer.js
++++ b/challenge-react/src/store/appSlicer.js
+@@ -27,6 +27,7 @@ export const postPayment = createAsyncThunk(
+ 
+       return responseData;
+     } catch (err) {
++      cb?.onError();
+       return rejectWithValue(null);
+     }
+   }
+-- 
+2.43.1
+

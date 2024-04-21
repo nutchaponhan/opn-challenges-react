@@ -1,0 +1,157 @@
+From 049028da97638011d9e76fdda9d7e0e380e2e2db Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 17:02:25 +0700
+Subject: [PATCH 06/12] step6: adding react toast to display message
+
+---
+ challenge-react/README.md    |  2 +-
+ challenge-react/db.json      | 12 ++++++++++++
+ challenge-react/package.json |  1 +
+ challenge-react/src/App.js   |  7 +++----
+ challenge-react/src/index.js |  4 ++++
+ challenge-react/yarn.lock    | 12 ++++++++++++
+ 6 files changed, 33 insertions(+), 5 deletions(-)
+
+diff --git a/challenge-react/README.md b/challenge-react/README.md
+index 1454543..28000de 100644
+--- a/challenge-react/README.md
++++ b/challenge-react/README.md
+@@ -71,7 +71,7 @@ Let's rock! :metal:
+ 
+ ## Applicant Extra Document
+ 
+-project refresh
++project setup change log to complete running application
+ 
+ - [x] update webpack proxy config
+ - [x] update webpack version to `5.91.0` to fix .mjs file type
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index a374699..8d2d5f5 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -73,6 +73,18 @@
+       "amount": 500,
+       "currency": "THB",
+       "id": 7
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 8
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 9
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/package.json b/challenge-react/package.json
+index 5dd90ab..aee7f01 100644
+--- a/challenge-react/package.json
++++ b/challenge-react/package.json
+@@ -17,6 +17,7 @@
+     "react": "^17.0.1",
+     "react-dom": "^17.0.1",
+     "react-redux": "^7.2.2",
++    "react-toastify": "9.1.3",
+     "redux": "^4.0.5",
+     "styled-components": "^6.1.8"
+   },
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index c54e633..19af7eb 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -1,6 +1,8 @@
+ import React, { useEffect } from 'react';
+ import fetch from 'isomorphic-fetch';
+ import { useSelector, useDispatch } from 'react-redux';
++import styled from 'styled-components';
++import { toast } from 'react-toastify';
+ 
+ import { TamboonCard } from './components';
+ 
+@@ -11,7 +13,6 @@ import {
+   setSelectAmount,
+ } from './store/appSlicer';
+ import { DONATE_AMOUNT } from './enum';
+-import styled from 'styled-components';
+ 
+ const App = () => {
+   const appState = useSelector((state) => state.app);
+@@ -79,15 +80,13 @@ const App = () => {
+         return res.json();
+       })
+       .then((data) => {
+-        console.log(data);
++        toast.success('donate success');
+       });
+   }
+ 
+   const donate = getDotation(appState?.payments);
+   const message = 'nice message coming soon';
+ 
+-  console.log({ appState });
+-
+   return (
+     <div>
+       <h1>Tamboon React</h1>
+diff --git a/challenge-react/src/index.js b/challenge-react/src/index.js
+index 820551b..7706d0d 100644
+--- a/challenge-react/src/index.js
++++ b/challenge-react/src/index.js
+@@ -1,6 +1,9 @@
+ import React from 'react';
+ import { render } from 'react-dom';
+ import { Provider } from 'react-redux';
++import { ToastContainer } from 'react-toastify';
++
++import 'react-toastify/dist/ReactToastify.css';
+ 
+ import App from './App';
+ import './app.css';
+@@ -10,6 +13,7 @@ import { store } from './store/appStore';
+ render(
+   <Provider store={store}>
+     <App />
++    <ToastContainer />
+   </Provider>,
+   document.getElementById('root')
+ );
+diff --git a/challenge-react/yarn.lock b/challenge-react/yarn.lock
+index a6734d3..4c78242 100644
+--- a/challenge-react/yarn.lock
++++ b/challenge-react/yarn.lock
+@@ -2388,6 +2388,11 @@ clone-response@^1.0.2:
+   dependencies:
+     mimic-response "^1.0.0"
+ 
++clsx@^1.1.1:
++  version "1.2.1"
++  resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.2.1.tgz#0ddc4a20a549b59c93a4116bb26f5294ca17dc12"
++  integrity sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==
++
+ co@^4.6.0:
+   version "4.6.0"
+   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
+@@ -6313,6 +6318,13 @@ react-redux@^7.2.2:
+     prop-types "^15.7.2"
+     react-is "^16.13.1"
+ 
++react-toastify@9.1.3:
++  version "9.1.3"
++  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-9.1.3.tgz#1e798d260d606f50e0fab5ee31daaae1d628c5ff"
++  integrity sha512-fPfb8ghtn/XMxw3LkxQBk3IyagNpF/LIKjOBflbexr2AWxAH1MJgvnESwEwBn9liLFXgTKWgBSdZpw9m4OTHTg==
++  dependencies:
++    clsx "^1.1.1"
++
+ react@^17.0.1:
+   version "17.0.1"
+   resolved "https://registry.yarnpkg.com/react/-/react-17.0.1.tgz#6e0600416bd57574e3f86d92edba3d9008726127"
+-- 
+2.43.1
+

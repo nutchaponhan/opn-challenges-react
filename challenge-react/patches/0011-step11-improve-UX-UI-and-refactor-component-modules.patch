@@ -1,0 +1,670 @@
+From c3030ed320a8765bea46d2dce5415e688bbd8189 Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sun, 21 Apr 2024 11:50:36 +0700
+Subject: [PATCH 11/12] step11: improve UX/UI and refactor component modules
+
+---
+ challenge-react/db.json                       |  84 +++++++++
+ challenge-react/src/App.js                    |  19 +-
+ .../src/components/base/button/Button.js      |  22 +++
+ .../src/components/{ => base}/card/Card.js    |   0
+ challenge-react/src/components/base/index.js  |   4 +
+ .../src/components/card/TamboonCard.js        | 166 ------------------
+ challenge-react/src/components/index.js       |   5 +-
+ .../src/components/tamboonCard/TamboonCard.js |  68 +++++++
+ .../tamboonCard/TamboonContentSide.js         |  50 ++++++
+ .../tamboonCard/TamboonDonateSide.js          |  91 ++++++++++
+ challenge-react/src/enum/index.js             |   2 +-
+ challenge-react/src/hooks/appHook.js          |   2 +-
+ challenge-react/src/store/appSlicer.js        |   4 +-
+ 13 files changed, 333 insertions(+), 184 deletions(-)
+ create mode 100644 challenge-react/src/components/base/button/Button.js
+ rename challenge-react/src/components/{ => base}/card/Card.js (100%)
+ create mode 100644 challenge-react/src/components/base/index.js
+ delete mode 100644 challenge-react/src/components/card/TamboonCard.js
+ create mode 100644 challenge-react/src/components/tamboonCard/TamboonCard.js
+ create mode 100644 challenge-react/src/components/tamboonCard/TamboonContentSide.js
+ create mode 100644 challenge-react/src/components/tamboonCard/TamboonDonateSide.js
+
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index 7307a06..5452d57 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -85,6 +85,90 @@
+       "amount": 500,
+       "currency": "THB",
+       "id": 9
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 10
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 11
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 12
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 13
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 14
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 15
++    },
++    {
++      "charitiesId": 5,
++      "amount": 100,
++      "currency": "THB",
++      "id": 16
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 17
++    },
++    {
++      "charitiesId": 1,
++      "amount": 10,
++      "currency": "THB",
++      "id": 18
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 19
++    },
++    {
++      "charitiesId": 1,
++      "amount": 50,
++      "currency": "THB",
++      "id": 20
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 21
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 22
++    },
++    {
++      "charitiesId": 1,
++      "amount": 100,
++      "currency": "THB",
++      "id": 23
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index 557a63b..5afee97 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -6,7 +6,7 @@ import { TamboonCard } from './components';
+ import { useAppHook } from './hooks/appHook';
+ import { groupDonations } from './helper/utils';
+ import { toast } from './helper/toast';
+-import { DONATE_AMOUNT } from './enum';
++import { DONATE_AMOUNT_CHOICE } from './enum';
+ 
+ const App = () => {
+   const { state: appState, action } = useAppHook();
+@@ -33,7 +33,10 @@ const App = () => {
+           toast.info('Processing . . .');
+         },
+         onError: () => {
+-          toast.error('Something went wrong 🤕');
++          toast.error({
++            title: 'Something went wrong 🤕',
++            content: `transaction ${selectAmount} ${currency} to ${name} was cancelled`,
++          });
+         },
+       },
+     };
+@@ -47,11 +50,10 @@ const App = () => {
+       <Layout>
+         {appState?.charities?.map((charity, i) => {
+           const totalCharityDonated = groupDonate[charity.id] || [0];
+-
+           return (
+             <TamboonCard
+               key={charity.id}
+-              payments={DONATE_AMOUNT}
++              payments={DONATE_AMOUNT_CHOICE}
+               item={charity}
+               total={totalCharityDonated}
+               handlePay={handlePay}
+@@ -74,14 +76,9 @@ const Layout = styled.div`
+   grid-template-columns: 1fr;
+   gap: 12px;
+ 
+-  /* Styles for tablets */
++  /* Styles for tablets and desktops */
+   @media only screen and (min-width: 768px) {
+-    grid-template-columns: repeat(2, 1fr);
+-  }
+-
+-  /* Styles for desktops */
+-  @media only screen and (min-width: 1024px) {
+-    grid-template-columns: repeat(2, 1fr);
++    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+   }
+ `;
+ 
+diff --git a/challenge-react/src/components/base/button/Button.js b/challenge-react/src/components/base/button/Button.js
+new file mode 100644
+index 0000000..b6193d6
+--- /dev/null
++++ b/challenge-react/src/components/base/button/Button.js
+@@ -0,0 +1,22 @@
++import React from 'react';
++import styled from 'styled-components';
++
++const ButtonStyled = styled.button`
++  background: none repeat scroll 0 0 transparent;
++  list-style: none outside none;
++  text-decoration: none;
++
++  color: #24a0ed;
++  border: 2px solid #24a0ed;
++  border-radius: 4px;
++
++  &:hover {
++    cursor: pointer;
++  }
++`;
++
++const Button = (props) => {
++  return <ButtonStyled {...props} />;
++};
++
++export default Button;
+diff --git a/challenge-react/src/components/card/Card.js b/challenge-react/src/components/base/card/Card.js
+similarity index 100%
+rename from challenge-react/src/components/card/Card.js
+rename to challenge-react/src/components/base/card/Card.js
+diff --git a/challenge-react/src/components/base/index.js b/challenge-react/src/components/base/index.js
+new file mode 100644
+index 0000000..b94b977
+--- /dev/null
++++ b/challenge-react/src/components/base/index.js
+@@ -0,0 +1,4 @@
++import Card from './card/Card';
++import Button from './button/Button';
++
++export { Card, Button };
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+deleted file mode 100644
+index 8b7ee9f..0000000
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ /dev/null
+@@ -1,166 +0,0 @@
+-import React, { useState } from 'react';
+-import styled from 'styled-components';
+-
+-import Card from './Card';
+-
+-const TamboonCard = ({ payments, item, total, handlePay }) => {
+-  const [onDonate, setOnDonate] = useState(false);
+-  const [selectAmount, setSelectAmount] = useState(null);
+-
+-  const imgPath = `/images/${item.image}`;
+-
+-  const toggle = () => {
+-    setOnDonate(!onDonate);
+-  };
+-
+-  const onDonateSubmit = () => {
+-    toggle();
+-    handlePay(item, selectAmount);
+-    setSelectAmount(null);
+-  };
+-
+-  const onDonateChoiceSelect = (amount) => {
+-    setSelectAmount(amount);
+-  };
+-
+-  const onDonateClose = () => {
+-    setSelectAmount(null);
+-    toggle();
+-  };
+-
+-  return (
+-    <Card>
+-      <TamboonContentSide isDonate={onDonate}>
+-        <TamboonCharityImage src={imgPath} alt={item.name} />
+-        <TamboonActionBar
+-          name={item.name}
+-          currency={item.currency}
+-          total={total}
+-          onClick={toggle}
+-        />
+-      </TamboonContentSide>
+-      <TamboonDonateSide
+-        selected={selectAmount}
+-        choice={payments}
+-        onDonate={onDonate}
+-        onSubmit={onDonateSubmit}
+-        onSelect={onDonateChoiceSelect}
+-        onClose={onDonateClose}
+-      />
+-    </Card>
+-  );
+-};
+-
+-export default TamboonCard;
+-
+-const TamboonContentSide = styled.div`
+-  opacity: ${(props) => (props.isDonate ? 0.1 : 1)};
+-`;
+-
+-const DonateLayout = styled.div`
+-  position: absolute;
+-  top: 0;
+-  left: 0;
+-
+-  width: 100%;
+-  height: 100%;
+-
+-  display: ${(props) => !props.isDonate && 'none'};
+-`;
+-
+-const DonateSide = styled.div`
+-  position: relative;
+-
+-  display: flex;
+-
+-  flex-direction: column;
+-  align-items: center;
+-  justify-content: center;
+-  height: inherit;
+-  gap: 12px;
+-`;
+-
+-const DonateChoiceSection = styled.div`
+-  display: flex;
+-  justify-content: space-between;
+-  gap: 12px;
+-`;
+-
+-const XIcon = styled.span`
+-  position: absolute;
+-  top: 24px;
+-  right: 24px;
+-
+-  &:hover {
+-    cursor: pointer;
+-  }
+-`;
+-
+-const TamboonDonateSide = ({
+-  selected,
+-  choice = [],
+-  onDonate,
+-  onSubmit,
+-  onSelect,
+-  onClose,
+-}) => {
+-  const paymentChoice = choice.map((amount, j) => (
+-    <label key={j}>
+-      <input
+-        type="radio"
+-        name="payment"
+-        checked={amount === selected}
+-        onChange={() => onSelect(amount)}
+-      />
+-      {amount}
+-    </label>
+-  ));
+-
+-  return (
+-    <DonateLayout isDonate={onDonate}>
+-      <DonateSide>
+-        <span>Select the amount to donate (USD)</span>
+-        <DonateChoiceSection>{paymentChoice}</DonateChoiceSection>
+-        <button onClick={onSubmit}>Pay</button>
+-        <XIcon onClick={onClose}>X</XIcon>
+-      </DonateSide>
+-    </DonateLayout>
+-  );
+-};
+-
+-const StyledImage = styled.img`
+-  width: 100%;
+-  height: 300px;
+-`;
+-
+-const TamboonCharityImage = ({ src, alt }) => {
+-  return <StyledImage src={src} alt={alt} />;
+-};
+-
+-const ActionBarLayout = styled.div`
+-  display: flex;
+-  padding: 24px;
+-  justify-content: space-between;
+-`;
+-
+-const ActionBarButton = styled.button`
+-  background: none repeat scroll 0 0 transparent;
+-  list-style: none outside none;
+-  text-decoration: none;
+-
+-  color: #24a0ed;
+-  border: 2px solid #24a0ed;
+-
+-  :hover {
+-    cursor: pointer;
+-  }
+-`;
+-
+-const TamboonActionBar = ({ name, currency, total, onClick }) => {
+-  return (
+-    <ActionBarLayout>
+-      <span>{`${name} (${total} ${currency})`}</span>
+-      <ActionBarButton onClick={onClick}>Donate</ActionBarButton>
+-    </ActionBarLayout>
+-  );
+-};
+diff --git a/challenge-react/src/components/index.js b/challenge-react/src/components/index.js
+index eebaa7a..6c0396d 100644
+--- a/challenge-react/src/components/index.js
++++ b/challenge-react/src/components/index.js
+@@ -1,4 +1,3 @@
+-import Card from './card/Card';
+-import TamboonCard from './card/TamboonCard';
++import TamboonCard from './tamboonCard/TamboonCard';
+ 
+-export { Card, TamboonCard };
++export { TamboonCard };
+diff --git a/challenge-react/src/components/tamboonCard/TamboonCard.js b/challenge-react/src/components/tamboonCard/TamboonCard.js
+new file mode 100644
+index 0000000..30d447c
+--- /dev/null
++++ b/challenge-react/src/components/tamboonCard/TamboonCard.js
+@@ -0,0 +1,68 @@
++import React, { useState } from 'react';
++
++import { Card } from '../base';
++import TamboonContentSide from './TamboonContentSide';
++import TamboonDonateSide from './TamboonDonateSide';
++import styled from 'styled-components';
++
++const TamboonCard = ({ payments, item, total, handlePay }) => {
++  const [onDonate, setOnDonate] = useState(false);
++  const [selectAmount, setSelectAmount] = useState(null);
++
++  const toggle = () => {
++    setOnDonate(!onDonate);
++  };
++
++  const resetSelectAmount = () => {
++    setSelectAmount(null);
++  };
++
++  const onDonateSubmit = () => {
++    handlePay(item, selectAmount);
++    resetSelectAmount();
++    toggle();
++  };
++
++  const onDonateChoiceSelect = (amount) => {
++    setSelectAmount(amount);
++  };
++
++  const onDonateClose = () => {
++    resetSelectAmount();
++    toggle();
++  };
++
++  const { name, image, currency } = item;
++
++  const imgPublicSrcPath = `/images/${image}`;
++
++  return (
++    <CardCenterLayout>
++      <Card style={{ maxWidth: 500, flex: 1 }}>
++        <TamboonContentSide
++          image={imgPublicSrcPath}
++          name={name}
++          currency={currency}
++          total={total}
++          onDonate={onDonate}
++          onClick={toggle}
++        />
++        <TamboonDonateSide
++          selected={selectAmount}
++          choice={payments}
++          onDonate={onDonate}
++          onSubmit={onDonateSubmit}
++          onSelect={onDonateChoiceSelect}
++          onClose={onDonateClose}
++        />
++      </Card>
++    </CardCenterLayout>
++  );
++};
++
++export default TamboonCard;
++
++const CardCenterLayout = styled.div`
++  display: flex;
++  justify-content: center;
++`;
+diff --git a/challenge-react/src/components/tamboonCard/TamboonContentSide.js b/challenge-react/src/components/tamboonCard/TamboonContentSide.js
+new file mode 100644
+index 0000000..e9b43b0
+--- /dev/null
++++ b/challenge-react/src/components/tamboonCard/TamboonContentSide.js
+@@ -0,0 +1,50 @@
++import React from 'react';
++import styled from 'styled-components';
++
++import { Button } from '../base';
++
++const TamboonContentSide = ({
++  image,
++  name,
++  currency,
++  total,
++  onDonate,
++  onClick,
++}) => {
++  return (
++    <TamboonContentLayout isDonate={onDonate}>
++      <BackgroundImage src={image} />
++      <ActionBar>
++        <div>
++          <p>{name}</p>
++          <p>{`Total donate: (${total} ${currency})`}</p>
++        </div>
++        <Button onClick={onClick}>Donate</Button>
++      </ActionBar>
++    </TamboonContentLayout>
++  );
++};
++
++export default TamboonContentSide;
++
++const TamboonContentLayout = styled.div`
++  opacity: ${(props) => (props.isDonate ? 0.075 : 1)};
++
++  font-weight: bold;
++  letter-spacing: 1px;
++`;
++
++const BackgroundImage = styled.div`
++  background-image: ${(props) => `url(${props.src})`};
++  background-size: cover;
++  background-position: center;
++  background-repeat: no-repeat;
++  width: 100%;
++  height: 300px;
++`;
++
++const ActionBar = styled.div`
++  display: flex;
++  padding: 24px;
++  justify-content: space-between;
++`;
+diff --git a/challenge-react/src/components/tamboonCard/TamboonDonateSide.js b/challenge-react/src/components/tamboonCard/TamboonDonateSide.js
+new file mode 100644
+index 0000000..b59bc73
+--- /dev/null
++++ b/challenge-react/src/components/tamboonCard/TamboonDonateSide.js
+@@ -0,0 +1,91 @@
++import React from 'react';
++import styled from 'styled-components';
++
++import { Button } from '../base';
++
++const TamboonDonateSide = ({
++  selected,
++  choice = [],
++  onDonate,
++  onSubmit,
++  onSelect,
++  onClose,
++}) => {
++  return (
++    <TamboonDonateLayout isDonate={onDonate}>
++      <DonateSide>
++        <span>Select the amount to donate (USD)</span>
++        <DonateChoiceSection>
++          {choice.map((amount) => (
++            <ChoiceContainer key={amount}>
++              <input
++                type="radio"
++                name="payment"
++                className="choice"
++                checked={amount === selected}
++                onChange={() => onSelect(amount)}
++              />
++              <label>{amount}</label>
++            </ChoiceContainer>
++          ))}
++        </DonateChoiceSection>
++        <Button onClick={onSubmit}>Pay</Button>
++        <IconX onClick={onClose}>X</IconX>
++      </DonateSide>
++    </TamboonDonateLayout>
++  );
++};
++
++export default TamboonDonateSide;
++
++const TamboonDonateLayout = styled.div`
++  position: absolute;
++  top: 0;
++  left: 0;
++
++  width: 100%;
++  height: 100%;
++
++  display: ${(props) => !props.isDonate && 'none'};
++
++  font-weight: bold;
++  letter-spacing: 1px;
++`;
++
++const DonateSide = styled.div`
++  position: relative;
++
++  display: flex;
++
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  height: inherit;
++  gap: 12px;
++`;
++
++const DonateChoiceSection = styled.div`
++  display: flex;
++  justify-content: space-between;
++  gap: 12px;
++`;
++
++const ChoiceContainer = styled.div`
++  input {
++    margin-right: 4px;
++
++    &:hover {
++      cursor: pointer;
++    }
++  }
++`;
++
++const IconX = styled.span`
++  position: absolute;
++  top: 24px;
++  right: 24px;
++
++  &:hover {
++    cursor: pointer;
++  }
++`;
+diff --git a/challenge-react/src/enum/index.js b/challenge-react/src/enum/index.js
+index 38e48fe..ba80100 100644
+--- a/challenge-react/src/enum/index.js
++++ b/challenge-react/src/enum/index.js
+@@ -1 +1 @@
+-export const DONATE_AMOUNT = [10, 20, 50, 100, 500];
++export const DONATE_AMOUNT_CHOICE = [10, 20, 50, 100, 500];
+diff --git a/challenge-react/src/hooks/appHook.js b/challenge-react/src/hooks/appHook.js
+index ee24264..55c7762 100644
+--- a/challenge-react/src/hooks/appHook.js
++++ b/challenge-react/src/hooks/appHook.js
+@@ -7,7 +7,7 @@ export const useAppHook = () => {
+   const appState = useSelector((state) => state.app);
+   const dispatch = useDispatch();
+ 
+-  const donate = useCallback(async (params) => {
++  const donate = useCallback((params) => {
+     dispatch(postPayment(params));
+   }, []);
+ 
+diff --git a/challenge-react/src/store/appSlicer.js b/challenge-react/src/store/appSlicer.js
+index 922465d..3a92923 100644
+--- a/challenge-react/src/store/appSlicer.js
++++ b/challenge-react/src/store/appSlicer.js
+@@ -27,8 +27,8 @@ export const postPayment = createAsyncThunk(
+ 
+       return responseData;
+     } catch (err) {
+-      cb?.onError();
+-      return rejectWithValue(null);
++      cb?.onError(data);
++      return rejectWithValue(data);
+     }
+   }
+ );
+-- 
+2.43.1
+

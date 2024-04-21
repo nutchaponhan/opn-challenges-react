@@ -1,0 +1,228 @@
+From 0b06a0556125743b90c2be898c70370d49247e1c Mon Sep 17 00:00:00 2001
+From: Nutchapon Hanouypornlert
+ <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
+Date: Sat, 20 Apr 2024 16:48:29 +0700
+Subject: [PATCH 05/12] step5: finish pay donate flow
+
+---
+ challenge-react/db.json                       |   8 +-
+ challenge-react/src/App.js                    | 108 ++++++++++++------
+ .../src/components/card/TamboonCard.js        |   2 +-
+ challenge-react/src/enum/index.js             |   1 +
+ challenge-react/src/store/appSlicer.js        |   4 +-
+ 5 files changed, 83 insertions(+), 40 deletions(-)
+ create mode 100644 challenge-react/src/enum/index.js
+
+diff --git a/challenge-react/db.json b/challenge-react/db.json
+index 09e6bf7..a374699 100644
+--- a/challenge-react/db.json
++++ b/challenge-react/db.json
+@@ -67,6 +67,12 @@
+       "amount": 500,
+       "currency": "THB",
+       "id": 6
++    },
++    {
++      "charitiesId": 1,
++      "amount": 500,
++      "currency": "THB",
++      "id": 7
+     }
+   ]
+-}
++}
+\ No newline at end of file
+diff --git a/challenge-react/src/App.js b/challenge-react/src/App.js
+index fcebc36..c54e633 100644
+--- a/challenge-react/src/App.js
++++ b/challenge-react/src/App.js
+@@ -5,12 +5,22 @@ import { useSelector, useDispatch } from 'react-redux';
+ import { TamboonCard } from './components';
+ 
+ import { summaryDonations } from './helpers';
+-import { setCharities, setPaymentTransactions } from './store/appSlicer';
++import {
++  setCharities,
++  setPaymentTransactions,
++  setSelectAmount,
++} from './store/appSlicer';
++import { DONATE_AMOUNT } from './enum';
++import styled from 'styled-components';
+ 
+ const App = () => {
+   const appState = useSelector((state) => state.app);
+   const dispatch = useDispatch();
+ 
++  useEffect(() => {
++    fetchAppData();
++  }, []);
++
+   const setCharitiesDispatch = (charities = []) => {
+     dispatch(setCharities(charities));
+   };
+@@ -19,6 +29,10 @@ const App = () => {
+     dispatch(setPaymentTransactions(paymentTransactions));
+   };
+ 
++  const setSelectAmountDispatch = (selectedAmount = 0) => {
++    dispatch(setSelectAmount(selectedAmount));
++  };
++
+   const getDotation = (paymentTransactions = []) => {
+     return summaryDonations(paymentTransactions.map((item) => item.amount));
+   };
+@@ -41,53 +55,75 @@ const App = () => {
+     setPaymentTransactionsDispatch(payments);
+   };
+ 
+-  useEffect(() => {
+-    fetchAppData();
+-  }, []);
+-
+-  const style = {
+-    color: 'red',
+-    margin: '1em 0',
+-    fontWeight: 'bold',
+-    fontSize: '16px',
+-    textAlign: 'center',
++  const handleSelect = (selectedAmount) => {
++    setSelectAmountDispatch(selectedAmount);
+   };
+ 
++  function handlePay(selectCharity = {}) {
++    const selectAmount = appState.selectAmount;
++
++    const { id, currency } = selectCharity;
++
++    fetch('api/payments', {
++      method: 'POST',
++      headers: {
++        'Content-Type': 'application/json',
++      },
++      body: JSON.stringify({
++        charitiesId: id,
++        amount: selectAmount,
++        currency,
++      }),
++    })
++      .then((res) => {
++        return res.json();
++      })
++      .then((data) => {
++        console.log(data);
++      });
++  }
++
+   const donate = getDotation(appState?.payments);
+   const message = 'nice message coming soon';
+ 
++  console.log({ appState });
++
+   return (
+     <div>
+       <h1>Tamboon React</h1>
+       <p>All donations: {donate}</p>
+-      <p style={style}>{message}</p>
+-      {appState?.charities?.map((item, i) => {
+-        return (
+-          <TamboonCard
+-            key={item.id}
+-            payments={[10, 20, 50, 100, 500]}
+-            item={item}
+-            handlePay={handlePay}
+-          />
+-        );
+-      })}
++      <p>{message}</p>
++      <Layout>
++        {appState?.charities?.map((charity, i) => {
++          return (
++            <TamboonCard
++              key={charity.id}
++              payments={DONATE_AMOUNT}
++              item={charity}
++              handlePay={handlePay}
++              handleSelect={handleSelect}
++            />
++          );
++        })}
++      </Layout>
+     </div>
+   );
+ };
+ 
+ export default App;
+ 
+-/**
+- * Handle pay button
+- * 
+- * @param {*} The charities Id
+- * @param {*} amount The amount was selected
+- * @param {*} currency The currency
+- * 
+- * @example
+- * fetch('api/payments', {
+-      method: 'POST',
+-      body: `{ "charitiesId": ${id}, "amount": ${amount}, "currency": "${currency}" }`,
+-    })
+- */
+-function handlePay(id, amount, currency) {}
++const Layout = styled.div`
++  display: grid;
++  grid-template-columns: 1fr;
++  gap: 12px;
++
++  /* Styles for tablets */
++  @media only screen and (min-width: 768px) {
++    grid-template-columns: repeat(2, 1fr);
++  }
++
++  /* Styles for desktops */
++  @media only screen and (min-width: 1024px) {
++    grid-template-columns: repeat(2, 1fr);
++  }
++`;
+diff --git a/challenge-react/src/components/card/TamboonCard.js b/challenge-react/src/components/card/TamboonCard.js
+index 7102db7..9570923 100644
+--- a/challenge-react/src/components/card/TamboonCard.js
++++ b/challenge-react/src/components/card/TamboonCard.js
+@@ -19,7 +19,7 @@ const TamboonCard = ({
+ 
+   const onDonateSubmit = () => {
+     toggle();
+-    handlePay();
++    handlePay(item);
+   };
+ 
+   const onDonateChoiceSelect = (amount) => {
+diff --git a/challenge-react/src/enum/index.js b/challenge-react/src/enum/index.js
+new file mode 100644
+index 0000000..38e48fe
+--- /dev/null
++++ b/challenge-react/src/enum/index.js
+@@ -0,0 +1 @@
++export const DONATE_AMOUNT = [10, 20, 50, 100, 500];
+diff --git a/challenge-react/src/store/appSlicer.js b/challenge-react/src/store/appSlicer.js
+index 66520e1..4c4ca2c 100644
+--- a/challenge-react/src/store/appSlicer.js
++++ b/challenge-react/src/store/appSlicer.js
+@@ -8,7 +8,7 @@ const appSlice = createSlice({
+     selectAmount: 0,
+   },
+   reducers: {
+-    select: (state, action) => {
++    setSelectAmount: (state, action) => {
+       state.selectAmount = action.payload;
+     },
+     setCharities: (state, action) => {
+@@ -20,6 +20,6 @@ const appSlice = createSlice({
+   },
+ });
+ 
+-export const { select, setCharities, setPaymentTransactions } =
++export const { setSelectAmount, setCharities, setPaymentTransactions } =
+   appSlice.actions;
+ export default appSlice.reducer;
+-- 
+2.43.1
+
