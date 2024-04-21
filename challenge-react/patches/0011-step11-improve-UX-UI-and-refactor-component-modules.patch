@@ -2,7 +2,7 @@ From c3030ed320a8765bea46d2dce5415e688bbd8189 Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sun, 21 Apr 2024 11:50:36 +0700
-Subject: [PATCH 11/12] step11: improve UX/UI and refactor component modules
+Subject: [PATCH 11/14] step11: improve UX/UI and refactor component modules
 
 ---
  challenge-react/db.json                       |  84 +++++++++

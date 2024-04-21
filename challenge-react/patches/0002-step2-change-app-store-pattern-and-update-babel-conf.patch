@@ -2,7 +2,7 @@ From 5ea109009061506747b55979c1a4420dfcd71789 Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 12:47:21 +0700
-Subject: [PATCH 02/12] step2: change app store pattern and update babel config
+Subject: [PATCH 02/14] step2: change app store pattern and update babel config
 
 ---
  challenge-react/.babelrc               |   8 +-

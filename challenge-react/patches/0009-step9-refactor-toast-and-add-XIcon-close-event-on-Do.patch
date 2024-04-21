@@ -2,7 +2,7 @@ From 7b147a124e8bffc277d6a6eb20c957d4eda7930a Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 20:47:17 +0700
-Subject: [PATCH 09/12] step9: refactor toast and add XIcon close event on
+Subject: [PATCH 09/14] step9: refactor toast and add XIcon close event on
  Donate component
 
 ---

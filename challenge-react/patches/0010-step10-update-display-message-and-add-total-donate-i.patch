@@ -2,7 +2,7 @@ From 51ea5020632f2bdd362f483e515900af9b0f6cbc Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sun, 21 Apr 2024 10:15:43 +0700
-Subject: [PATCH 10/12] step10: update display message and add total donate
+Subject: [PATCH 10/14] step10: update display message and add total donate
  into each Tamboon Card
 
 ---

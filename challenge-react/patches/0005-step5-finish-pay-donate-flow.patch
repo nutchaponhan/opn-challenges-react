@@ -2,7 +2,7 @@ From 0b06a0556125743b90c2be898c70370d49247e1c Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 16:48:29 +0700
-Subject: [PATCH 05/12] step5: finish pay donate flow
+Subject: [PATCH 05/14] step5: finish pay donate flow
 
 ---
  challenge-react/db.json                       |   8 +-

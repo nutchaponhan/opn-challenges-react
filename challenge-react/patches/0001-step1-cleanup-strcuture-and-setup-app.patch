@@ -2,7 +2,7 @@ From 8ba594346ec9d3b062318b21f5ed5892f9d08bda Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 11:37:47 +0700
-Subject: [PATCH 01/12] step1: cleanup strcuture and setup app
+Subject: [PATCH 01/14] step1: cleanup strcuture and setup app
 
 ---
  challenge-react/README.md                     |   8 +

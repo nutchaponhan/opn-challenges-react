@@ -2,7 +2,7 @@ From b2f8eec1dda5194a758ed6eebb0c9ca52348a94c Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 15:12:26 +0700
-Subject: [PATCH 03/12] step3: add global reset css styling and update babel
+Subject: [PATCH 03/14] step3: add global reset css styling and update babel
  config
 
 ---

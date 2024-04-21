@@ -2,7 +2,7 @@ From 787ce401f3dab55acc2dbc968f31a6febf9dd3f7 Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 16:15:33 +0700
-Subject: [PATCH 04/12] step4: create TamboonCard component
+Subject: [PATCH 04/14] step4: create TamboonCard component
 
 ---
  challenge-react/src/components/card/Card.js   |   2 +

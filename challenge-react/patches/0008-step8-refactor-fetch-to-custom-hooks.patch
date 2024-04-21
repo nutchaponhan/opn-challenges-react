@@ -2,7 +2,7 @@ From 1815cbf24a54e1ad173146795ce634bd8a77ee05 Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 18:40:15 +0700
-Subject: [PATCH 08/12] step8: refactor fetch to custom hooks
+Subject: [PATCH 08/14] step8: refactor fetch to custom hooks
 
 ---
  challenge-react/README.md              |   1 +

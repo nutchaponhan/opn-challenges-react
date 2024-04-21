@@ -2,7 +2,7 @@ From 049028da97638011d9e76fdda9d7e0e380e2e2db Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sat, 20 Apr 2024 17:02:25 +0700
-Subject: [PATCH 06/12] step6: adding react toast to display message
+Subject: [PATCH 06/14] step6: adding react toast to display message
 
 ---
  challenge-react/README.md    |  2 +-

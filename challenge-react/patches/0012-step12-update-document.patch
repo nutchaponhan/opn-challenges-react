@@ -2,7 +2,7 @@ From 93727e12bbd6a512bb31f516a5af401c718a3aa2 Mon Sep 17 00:00:00 2001
 From: Nutchapon Hanouypornlert
  <nutchaponhanouypornlert@Nutchapons-MacBook-Pro.local>
 Date: Sun, 21 Apr 2024 12:39:09 +0700
-Subject: [PATCH 12/12] step12: update document
+Subject: [PATCH 12/14] step12: update document
 
 ---
  challenge-react/README.md                     |  79 ++++++++++---
