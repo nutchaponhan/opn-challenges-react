@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 import Card from './Card';
 
-const TamboonCard = ({ payments, item, handlePay }) => {
+const TamboonCard = ({ payments, item, total, handlePay }) => {
   const [onDonate, setOnDonate] = useState(false);
   const [selectAmount, setSelectAmount] = useState(null);
 
@@ -32,7 +32,12 @@ const TamboonCard = ({ payments, item, handlePay }) => {
     <Card>
       <TamboonContentSide isDonate={onDonate}>
         <TamboonCharityImage src={imgPath} alt={item.name} />
-        <TamboonActionBar name={item.name} onClick={toggle} />
+        <TamboonActionBar
+          name={item.name}
+          currency={item.currency}
+          total={total}
+          onClick={toggle}
+        />
       </TamboonContentSide>
       <TamboonDonateSide
         selected={selectAmount}
@@ -151,10 +156,10 @@ const ActionBarButton = styled.button`
   }
 `;
 
-const TamboonActionBar = ({ name, onClick }) => {
+const TamboonActionBar = ({ name, currency, total, onClick }) => {
   return (
     <ActionBarLayout>
-      <span>{name}</span>
+      <span>{`${name} (${total} ${currency})`}</span>
       <ActionBarButton onClick={onClick}>Donate</ActionBarButton>
     </ActionBarLayout>
   );

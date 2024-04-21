@@ -4,21 +4,17 @@ import styled from 'styled-components';
 import { TamboonCard } from './components';
 
 import { useAppHook } from './hooks/appHook';
-import { summaryDonations } from './helper/utils';
+import { groupDonations } from './helper/utils';
 import { toast } from './helper/toast';
 import { DONATE_AMOUNT } from './enum';
-
-const getDotation = (paymentTransactions = []) => {
-  return summaryDonations(paymentTransactions.map((item) => item.amount));
-};
 
 const App = () => {
   const { state: appState, action } = useAppHook();
 
-  const donate = getDotation(appState?.payments);
+  const groupDonate = groupDonations(appState?.payments);
 
   function handlePay(selectCharity = {}, selectAmount) {
-    const { id, currency } = selectCharity;
+    const { id, name, currency } = selectCharity;
 
     const param = {
       data: {
@@ -28,10 +24,9 @@ const App = () => {
       },
       cb: {
         onSuccess: () => {
-          const newTotalDonate = donate + selectAmount;
           toast.success({
             title: 'Donate Successful ❤️',
-            content: `Total donation ${newTotalDonate} ${currency}`,
+            content: `You donation ${selectAmount} ${currency} to ${name}`,
           });
         },
         onPending: () => {
@@ -51,11 +46,14 @@ const App = () => {
       <Header>Omise Tamboon React</Header>
       <Layout>
         {appState?.charities?.map((charity, i) => {
+          const totalCharityDonated = groupDonate[charity.id] || [0];
+
           return (
             <TamboonCard
               key={charity.id}
               payments={DONATE_AMOUNT}
               item={charity}
+              total={totalCharityDonated}
               handlePay={handlePay}
             />
           );
