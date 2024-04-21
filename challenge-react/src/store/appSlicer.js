@@ -27,8 +27,8 @@ export const postPayment = createAsyncThunk(
 
       return responseData;
     } catch (err) {
-      cb?.onError();
-      return rejectWithValue(null);
+      cb?.onError(data);
+      return rejectWithValue(data);
     }
   }
 );

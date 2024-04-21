@@ -1,4 +1,3 @@
-import Card from './card/Card';
-import TamboonCard from './card/TamboonCard';
+import TamboonCard from './tamboonCard/TamboonCard';
 
-export { Card, TamboonCard };
+export { TamboonCard };

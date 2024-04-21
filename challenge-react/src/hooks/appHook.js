@@ -7,7 +7,7 @@ export const useAppHook = () => {
   const appState = useSelector((state) => state.app);
   const dispatch = useDispatch();
 
-  const donate = useCallback(async (params) => {
+  const donate = useCallback((params) => {
     dispatch(postPayment(params));
   }, []);
 

@@ -6,7 +6,7 @@ import { TamboonCard } from './components';
 import { useAppHook } from './hooks/appHook';
 import { groupDonations } from './helper/utils';
 import { toast } from './helper/toast';
-import { DONATE_AMOUNT } from './enum';
+import { DONATE_AMOUNT_CHOICE } from './enum';
 
 const App = () => {
   const { state: appState, action } = useAppHook();
@@ -33,7 +33,10 @@ const App = () => {
           toast.info('Processing . . .');
         },
         onError: () => {
-          toast.error('Something went wrong 🤕');
+          toast.error({
+            title: 'Something went wrong 🤕',
+            content: `transaction ${selectAmount} ${currency} to ${name} was cancelled`,
+          });
         },
       },
     };
@@ -47,11 +50,10 @@ const App = () => {
       <Layout>
         {appState?.charities?.map((charity, i) => {
           const totalCharityDonated = groupDonate[charity.id] || [0];
-
           return (
             <TamboonCard
               key={charity.id}
-              payments={DONATE_AMOUNT}
+              payments={DONATE_AMOUNT_CHOICE}
               item={charity}
               total={totalCharityDonated}
               handlePay={handlePay}
@@ -74,14 +76,9 @@ const Layout = styled.div`
   grid-template-columns: 1fr;
   gap: 12px;
 
-  /* Styles for tablets */
+  /* Styles for tablets and desktops */
   @media only screen and (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* Styles for desktops */
-  @media only screen and (min-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   }
 `;
 
